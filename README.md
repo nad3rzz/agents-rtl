@@ -1,5 +1,8 @@
 # Agents RTL
 
+Link:https://marketplace.visualstudio.com/items?itemName=Nad3r.agents-rtl
+
+
 Plug-and-play Arabic RTL support for AI agent webviews in VS Code.
 
 Supports Linux and Windows.

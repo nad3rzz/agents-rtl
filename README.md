@@ -1,22 +1,22 @@
 # Agents RTL
 
-https://marketplace.visualstudio.com/items?itemName=Nad3r.agents-rtl
+Plug-and-play Arabic RTL support for Codex and AI agent webviews in VS Code-compatible editors.
 
+- VS Code Marketplace: https://marketplace.visualstudio.com/items?itemName=Nad3r.agents-rtl
+- Open VSX Registry: https://open-vsx.org/extension/nad3r/agents-rtl
 
-Plug-and-play Arabic RTL support for AI agent webviews in VS Code.
-
-Supports Linux and Windows.
+Supports Linux and Windows x64.
 
 ## Before / After
 
 Without RTL:
 
-![Without RTL](images/before-rtl.png)
+![Without RTL](https://raw.githubusercontent.com/nad3rzz/agents-rtl/main/images/before-rtl.png)
 
 With RTL:
 
-![With RTL](images/after-rtl.png)
+![With RTL](https://raw.githubusercontent.com/nad3rzz/agents-rtl/main/images/after-rtl.png)
 
-Install, restart VS Code once if prompted, then open VS Code normally with `code`.
+Install the extension, restart the editor once if prompted, then open it normally.
 
 No launcher. No recording. No cloud service.

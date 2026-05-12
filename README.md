@@ -19,11 +19,11 @@ Supports Linux and Windows x64.
 
 Without RTL:
 
-![Without RTL](https://raw.githubusercontent.com/nad3rzz/agents-rtl/main/extension/images/marketplace/before-rtl.png)
+![Without RTL](https://raw.githubusercontent.com/nad3rzz/agents-rtl/main/images/before-rtl.png)
 
 With RTL:
 
-![With RTL](https://raw.githubusercontent.com/nad3rzz/agents-rtl/main/extension/images/marketplace/after-rtl.png)
+![With RTL](https://raw.githubusercontent.com/nad3rzz/agents-rtl/main/images/after-rtl.png)
 
 Install the extension, restart the editor once if prompted, then open it normally.
 

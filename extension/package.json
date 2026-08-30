@@ -1,0 +1,137 @@
+{
+  "name": "agents-rtl",
+  "displayName": "Agents RTL",
+  "description": "Arabic RTL, chat tabs, and scroll controls for Codex, Gemini Code Assist, and agent chats in VS Code and Antigravity.",
+  "version": "0.0.80",
+  "publisher": "nad3r",
+  "icon": "images/marketplace/icon.png",
+  "license": "SEE LICENSE IN LICENSE",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/nad3rzz/agents-rtl.git"
+  },
+  "engines": {
+    "vscode": "^1.90.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "keywords": [
+    "rtl",
+    "arabic",
+    "arabic rtl",
+    "right-to-left",
+    "bidi",
+    "bidirectional",
+    "rtl chat",
+    "arabic chat",
+    "ai chat",
+    "agent chat",
+    "ai agents",
+    "agents rtl",
+    "chat tabs",
+    "chat navigation",
+    "scroll controls",
+    "codex",
+    "codex chat",
+    "codex rtl",
+    "codex tabs",
+    "gemini",
+    "gemini code assist",
+    "antigravity",
+    "vscode",
+    "vs code",
+    "openai",
+    "chatgpt"
+  ],
+  "activationEvents": [
+    "onStartupFinished",
+    "onCommand:agentsRtl.start",
+    "onCommand:agentsRtl.stop",
+    "onCommand:agentsRtl.restart",
+    "onCommand:agentsRtl.configureRuntimeArguments",
+    "onCommand:agentsRtl.status"
+  ],
+  "main": "./extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "agentsRtl.start",
+        "title": "Agents RTL: Start"
+      },
+      {
+        "command": "agentsRtl.stop",
+        "title": "Agents RTL: Stop"
+      },
+      {
+        "command": "agentsRtl.restart",
+        "title": "Agents RTL: Restart"
+      },
+      {
+        "command": "agentsRtl.configureRuntimeArguments",
+        "title": "Agents RTL: Enable Runtime"
+      },
+      {
+        "command": "agentsRtl.status",
+        "title": "Agents RTL: Status"
+      }
+    ],
+    "configuration": {
+      "title": "Agents RTL",
+      "properties": {
+        "agentsRtl.autoStart": {
+          "type": "boolean",
+          "default": true,
+          "description": "Start Agents RTL automatically when VS Code starts."
+        },
+        "agentsRtl.devtoolsPort": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "default": null,
+          "minimum": 1,
+          "maximum": 65535,
+          "description": "Required when the DevTools endpoint source is fixedPort; ignored when activePortFile is selected."
+        },
+        "agentsRtl.devtoolsEndpointSource": {
+          "type": "string",
+          "enum": [
+            "fixedPort",
+            "activePortFile"
+          ],
+          "default": "activePortFile",
+          "enumDescriptions": [
+            "Manage a fixed DevTools port through the product argv.json file.",
+            "Manage a collision-free dynamic port and discover it from Chromium's DevToolsActivePort file."
+          ],
+          "description": "Selects the single source of truth for the DevTools endpoint."
+        },
+        "agentsRtl.devtoolsActivePortFilePath": {
+          "type": "string",
+          "default": "",
+          "description": "Optional absolute DevToolsActivePort path override. Leave empty for automatic discovery."
+        },
+        "agentsRtl.extraDevtoolsPorts": {
+          "type": "array",
+          "default": [],
+          "items": {
+            "type": "number"
+          },
+          "description": "Additional DevTools ports watched by the helper. Leave empty unless you explicitly need more than the current product port."
+        },
+        "agentsRtl.watchIntervalMs": {
+          "type": "number",
+          "default": 2500,
+          "minimum": 500,
+          "description": "How often the helper checks for agent webviews."
+        },
+        "agentsRtl.argvFilePath": {
+          "type": "string",
+          "default": "",
+          "description": "Optional argv.json path. Leave empty to use the current VS Code product default."
+        }
+      }
+    }
+  }
+}

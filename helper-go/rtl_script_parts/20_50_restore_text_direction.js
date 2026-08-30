@@ -1,0 +1,30 @@
+  const restoreManagedElement = (element) => {
+    const previousDir = element.getAttribute(PREVIOUS_DIR_ATTRIBUTE_NAME);
+    if (previousDir !== null) setAttributeIfChanged(element, "dir", previousDir);
+    else removeAttributeIfPresent(element, "dir");
+    const previousTextAlign = element.getAttribute(PREVIOUS_TEXT_ALIGN_ATTRIBUTE_NAME);
+    setStyleValueIfChanged(element, "textAlign", previousTextAlign !== null ? previousTextAlign : "");
+    const previousUnicodeBidi = element.getAttribute(PREVIOUS_UNICODE_BIDI_ATTRIBUTE_NAME);
+    setStyleValueIfChanged(element, "unicodeBidi", previousUnicodeBidi !== null ? previousUnicodeBidi : "");
+    const previousWidth = element.getAttribute(PREVIOUS_WIDTH_ATTRIBUTE_NAME);
+    setStyleValueIfChanged(element, "width", previousWidth !== null ? previousWidth : "");
+    const previousFlex = element.getAttribute(PREVIOUS_FLEX_ATTRIBUTE_NAME);
+    setStyleValueIfChanged(element, "flex", previousFlex !== null ? previousFlex : "");
+    removeAttributeIfPresent(element, MANAGED_ATTRIBUTE_NAME);
+    removeAttributeIfPresent(element, PREVIOUS_DIR_ATTRIBUTE_NAME);
+    removeAttributeIfPresent(element, PREVIOUS_TEXT_ALIGN_ATTRIBUTE_NAME);
+    removeAttributeIfPresent(element, PREVIOUS_UNICODE_BIDI_ATTRIBUTE_NAME);
+    removeAttributeIfPresent(element, PREVIOUS_WIDTH_ATTRIBUTE_NAME);
+    removeAttributeIfPresent(element, PREVIOUS_FLEX_ATTRIBUTE_NAME);
+    removeAttributeIfPresent(element, PLAIN_TEXT_CODE_BLOCK_ATTRIBUTE_NAME);
+    removeAttributeIfPresent(element, MESSAGE_BUBBLE_ATTRIBUTE_NAME);
+    removeAttributeIfPresent(element, CODEX_RESPONSE_ANNOTATION_TEXT_ATTRIBUTE_NAME);
+    removeAttributeIfPresent(element, TABLE_ATTRIBUTE_NAME);
+  };
+	const setManagedTextDirection = (element, direction, textAlign = "start", unicodeBidi = "isolate") => {
+		storeOriginalPresentationState(element);
+		setAttributeIfChanged(element, MANAGED_ATTRIBUTE_NAME, "1");
+		setAttributeIfChanged(element, "dir", direction);
+		setStyleValueIfChanged(element, "unicodeBidi", unicodeBidi);
+		setStyleValueIfChanged(element, "textAlign", textAlign);
+	};

@@ -1,0 +1,19 @@
+
+(() => {
+  const KEY = "__agentsRtl";
+  const MANAGED_ATTRIBUTE_NAME = "data-agents-rtl-managed";
+  const PREVIOUS_DIR_ATTRIBUTE_NAME = "data-agents-rtl-previous-dir";
+  const PREVIOUS_TEXT_ALIGN_ATTRIBUTE_NAME = "data-agents-rtl-previous-text-align";
+  const PREVIOUS_UNICODE_BIDI_ATTRIBUTE_NAME = "data-agents-rtl-previous-unicode-bidi";
+  const PREVIOUS_WIDTH_ATTRIBUTE_NAME = "data-agents-rtl-previous-width";
+  const PREVIOUS_FLEX_ATTRIBUTE_NAME = "data-agents-rtl-previous-flex";
+  const PLAIN_TEXT_CODE_BLOCK_ATTRIBUTE_NAME = "data-agents-rtl-plain-text-code-block";
+  const MESSAGE_BUBBLE_ATTRIBUTE_NAME = "data-agents-rtl-message-bubble";
+  const CODEX_RESPONSE_ANNOTATION_TEXT_ATTRIBUTE_NAME = "data-agents-rtl-codex-response-annotation-text";
+  const CODEX_RESPONSE_ANNOTATION_KIND_ATTRIBUTE_NAME = "data-agents-rtl-codex-response-annotation-kind";
+  const TABLE_ATTRIBUTE_NAME = "data-agents-rtl-table";
+  const TABLE_WRAPPER_ATTRIBUTE_NAME = "data-agents-rtl-table-wrapper";
+  const COMPOSER_EDITOR_ATTRIBUTE_NAME = "data-agents-rtl-composer-editor";
+  const NATIVE_VSC_COMPOSER_ATTRIBUTE_NAME = "data-agents-rtl-native-vscode-composer";
+  const GEMINI_COMPOSER_ATTRIBUTE_NAME = "data-agents-rtl-gemini-composer";
+  const SCRIPT_VERSION = "0.0.80";

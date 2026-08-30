@@ -1,0 +1,12 @@
+.git/**
+.vscode/**
+node_modules/**
+npm-debug.log
+yarn.lock
+pnpm-lock.yaml
+*.vsix
+*.test.js
+.env.publish
+.env.publish.example
+images/originals/**
+images/generated/**

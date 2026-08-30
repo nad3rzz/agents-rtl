@@ -1,0 +1,29 @@
+  if (window[KEY]?.installed && window[KEY].version === SCRIPT_VERSION) {
+    Object.assign(window[KEY], {
+      applyCodexConversationListRenameControls,
+      removeCodexConversationListRenameControls,
+      openCodexConversationListRenameEditorForButton,
+      installCodexConversationListRenameListeners,
+      removeCodexConversationListRenameListeners,
+      toggleCodexResourceMonitorVisibility,
+      resetCodexResourceMonitorTotals,
+      updateCodexResourceMonitor,
+      installCodexTransientListeners,
+      removeCodexTransientListeners,
+    });
+    window[KEY].updateCodexConversations?.();
+    window[KEY].renderCodexChatTabs?.();
+    window[KEY].applyCodexConversationListRenameControls?.();
+    window[KEY].updateCodexPendingApprovalRefreshTimer?.();
+    window[KEY].installSelectAllFix?.();
+    window[KEY].installStyle?.();
+    window[KEY].installControlButtons?.();
+    window[KEY].installGeminiHistoryTrim?.();
+    window[KEY].installAntigravityNativeEnterFallback?.();
+    window[KEY].syncScrollButtons?.();
+    window[KEY].installCodexConversationListRenameListeners?.();
+    window[KEY].updateControlButtons?.();
+    window[KEY].updateCodexResourceMonitor?.();
+    window[KEY].apply?.();
+    return;
+  }

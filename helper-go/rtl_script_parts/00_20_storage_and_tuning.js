@@ -1,0 +1,44 @@
+  const RTL_ENABLED_STORAGE_KEY = "agentsRtl.enabled";
+  const SCROLL_BUTTONS_ENABLED_STORAGE_KEY = "agentsRtl.scrollButtonsEnabled";
+  const CODEX_RESOURCE_MONITOR_VISIBLE_STORAGE_KEY = "agentsRtl.codexResourceMonitorVisible";
+  const CODEX_RESOURCE_MONITOR_RESET_REQUEST_ID_STORAGE_KEY = "agentsRtl.codexResourceMonitorResetRequestId";
+  const CODEX_CHAT_TAB_ORDER_STORAGE_KEY = "agentsRtl.codexChatTabs.order";
+  const CODEX_CHAT_TAB_ORDER_REQUESTS_STORAGE_KEY = "agentsRtl.codexChatTabs.orderRequests";
+  const CODEX_CHAT_ARCHIVE_REQUESTS_STORAGE_KEY = "agentsRtl.codexChatTabs.archiveRequests";
+  const CODEX_CHAT_PROCESSED_ARCHIVES_STORAGE_KEY = "agentsRtl.codexChatTabs.processedArchiveIds";
+  const CODEX_PENDING_APPROVAL_TITLES_STORAGE_KEY = "agentsRtl.codexChatTabs.pendingApprovalTitles";
+  const CODEX_CHAT_RECENT_STORAGE_KEY = "agentsRtl.codexChatTabs.recent";
+  const CODEX_CHAT_ACTIVITY_STORAGE_KEY = "agentsRtl.codexChatTabs.activityKeys";
+  const CODEX_CHAT_ACTIVITY_REQUESTS_STORAGE_KEY = "agentsRtl.codexChatTabs.activityKeyRequests";
+  const BUTTON_CLUSTER_POSITION_STORAGE_KEY_PREFIX = "agentsRtl.buttonClusterPosition:";
+  const CODEX_CHAT_VISIBLE_TAB_LIMIT = 4;
+  const CODEX_AWAITING_APPROVAL_TEXT = "Awaiting approval";
+  const CODEX_WAITING_ON_APPROVAL_FLAG = "waitingOnApproval";
+  const CODEX_PENDING_APPROVAL_REFRESH_INTERVAL_MS = 2000;
+  const ANTIGRAVITY_NATIVE_ENTER_FALLBACK_DELAY_MS = 120;
+  const ANTIGRAVITY_NATIVE_SUBMIT_BUTTON_LABELS = new Set(["Send message", "Add pending comment"]);
+  const CODEX_CHAT_LIST_RENAME_KEYBOARD_KEYS = new Set(["Enter", " "]);
+  const CODEX_CHAT_LIST_RENAME_BINDING_VERSION = "2";
+  const CODEX_CHAT_RENAME_EDITOR_VIEWPORT_MARGIN_PX = 8;
+  const CODEX_CHAT_RENAME_EDITOR_OFFSET_PX = 6;
+  const CODEX_NATIVE_RENAME_CACHE_POLL_INTERVAL_MS = 50;
+  const CODEX_NATIVE_RENAME_CACHE_MAX_ATTEMPTS = 100;
+  const GEMINI_HISTORY_TRIM_ENABLED = false;
+  const GEMINI_HISTORY_KEEP_COUNT = 6;
+  const GEMINI_HISTORY_MESSAGE_TYPES = new Set([
+    "STREAM_CHAT_HISTORY",
+    "STREAM_CHAT_HISTORY_ENDED",
+    "GET_CHAT_HISTORY_COMPLETE",
+    "GET_CHAT_HISTORY_RESUME",
+  ]);
+  const SCROLL_DELTA_PX = 140;
+  const NATIVE_CHAT_WHEEL_DELTA_PX = 140;
+  const NATIVE_CHAT_WHEEL_EVENT_COUNT = 3;
+  const BUTTON_CLUSTER_DEFAULT_RIGHT_PX = 10;
+  const BUTTON_CLUSTER_DEFAULT_BOTTOM_PX = 8;
+  const BUTTON_CLUSTER_VIEWPORT_MARGIN_PX = 4;
+  const SCROLL_HEIGHT_TOLERANCE_PX = 2;
+  const HOLD_START_DELAY_MS = 180;
+  const CONTINUOUS_SCROLL_INTERVAL_MS = 80;
+  const RESOURCE_MONITOR_BYTES_PER_UNIT = 1024;
+  const RESOURCE_MONITOR_NUMBER_DECIMAL_PLACES = 1;

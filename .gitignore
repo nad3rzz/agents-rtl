@@ -1,0 +1,5 @@
+.env.publish
+.build-vsix/
+extension/bin/
+extension/*.vsix
+/helper-go/personal-account-switcher/

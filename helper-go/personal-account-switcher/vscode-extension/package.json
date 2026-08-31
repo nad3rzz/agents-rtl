@@ -1,0 +1,53 @@
+{
+  "name": "agents-rtl-personal",
+  "displayName": "Agents RTL Personal",
+  "description": "Private local tools for Codex accounts and native Git repository visibility.",
+  "version": "0.0.27",
+  "publisher": "nad3r",
+  "license": "UNLICENSED",
+  "engines": {
+    "vscode": "^1.90.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [
+    "onStartupFinished",
+    "onCommand:agentsRtlPersonal.openAccountsPanel",
+    "onCommand:agentsRtlPersonal.refreshAccounts"
+  ],
+  "scripts": {
+    "test": "node --test *.test.js"
+  },
+  "main": "./extension.js",
+  "extensionDependencies": [
+    "vscode.git"
+  ],
+  "contributes": {
+    "commands": [
+      {
+        "command": "agentsRtlPersonal.openAccountsPanel",
+        "title": "Agents RTL Personal: Open Account Switcher"
+      },
+      {
+        "command": "agentsRtlPersonal.refreshAccounts",
+        "title": "Agents RTL Personal: Refresh Accounts"
+      }
+    ],
+    "configuration": {
+      "title": "Agents RTL Personal",
+      "properties": {
+        "agentsRtlPersonal.switcherPath": {
+          "type": "string",
+          "default": "",
+          "description": "Optional absolute path to codex-account-switcher. Leave empty for the bundled/source-layout default."
+        },
+        "agentsRtlPersonal.stateDir": {
+          "type": "string",
+          "default": "",
+          "description": "Optional account switcher state directory override."
+        }
+      }
+    }
+  }
+}

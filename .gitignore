@@ -2,4 +2,6 @@
 .build-vsix/
 extension/bin/
 extension/*.vsix
-/helper-go/personal-account-switcher/
+/helper-go/personal-account-switcher/codex-account-switcher
+/helper-go/personal-account-switcher/vscode-extension/bin/
+/helper-go/personal-account-switcher/vscode-extension/*.vsix

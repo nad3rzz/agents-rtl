@@ -4,8 +4,9 @@
     styleElement.id = STYLE_ELEMENT_ID;
     styleElement.textContent = [
       "[" + MANAGED_ATTRIBUTE_NAME + "] :is(" + CODE_LIKE_SELECTOR + "){direction:ltr!important;text-align:left!important;unicode-bidi:isolate!important}",
-      "[" + PLAIN_TEXT_CODE_BLOCK_ATTRIBUTE_NAME + "]{direction:rtl!important;text-align:right!important;unicode-bidi:plaintext!important}",
-      "[" + PLAIN_TEXT_CODE_BLOCK_ATTRIBUTE_NAME + "] > code,[" + PLAIN_TEXT_CODE_BLOCK_ATTRIBUTE_NAME + "] > code > span,[" + PLAIN_TEXT_CODE_BLOCK_ATTRIBUTE_NAME + "] > code > span > span{direction:inherit!important;text-align:right!important;unicode-bidi:plaintext!important;display:block!important;white-space:pre-wrap!important}",
+      "[" + PLAIN_TEXT_CODE_BLOCK_ATTRIBUTE_NAME + "][dir='auto']:dir(rtl){direction:rtl!important;text-align:right!important;unicode-bidi:plaintext!important}",
+      "[" + PLAIN_TEXT_CODE_BLOCK_ATTRIBUTE_NAME + "][dir='auto']:dir(ltr){direction:ltr!important;text-align:left!important;unicode-bidi:plaintext!important}",
+      "[" + PLAIN_TEXT_CODE_BLOCK_ATTRIBUTE_NAME + "] > code,[" + PLAIN_TEXT_CODE_BLOCK_ATTRIBUTE_NAME + "] > code > span,[" + PLAIN_TEXT_CODE_BLOCK_ATTRIBUTE_NAME + "] > code > span > span{direction:inherit!important;text-align:inherit!important;unicode-bidi:plaintext!important;display:block!important;white-space:pre-wrap!important}",
       "[" + MANAGED_ATTRIBUTE_NAME + "][dir='rtl']:is(ol,ul),[" + MANAGED_ATTRIBUTE_NAME + "][dir='rtl'] :is(ol,ul){padding-inline-start:0!important;padding-inline-end:1.5rem!important}",
       "button[aria-label='Copy'],button[aria-label='Copy message'],button[aria-label='Good response'],button[aria-label='Bad response'],button[aria-label='Fork from this point']{opacity:1!important;visibility:visible!important}",
       "html[data-agents-rtl-active='1'] " + USER_MESSAGE_SELECTOR + "{background-color:rgba(126,87,194,.18)!important;border-radius:8px!important}",
@@ -13,6 +14,8 @@
       "html[data-agents-rtl-active='1'] [" + MESSAGE_BUBBLE_ATTRIBUTE_NAME + "]{background-color:rgba(126,87,194,.18)!important;border-radius:16px!important}",
       "html[data-agents-rtl-active='1'] [data-composer-attachment-pill='true']{background:rgba(126,87,194,.28)!important;border-color:rgba(167,139,250,.62)!important;color:rgba(255,255,255,.94)!important}",
       "html[data-agents-rtl-active='1'] [data-composer-attachment-pill='true']:hover{background:rgba(126,87,194,.40)!important}",
+      "html[data-agents-rtl-active='1'] button[" + CODEX_ADD_TO_CHAT_BUTTON_ATTRIBUTE_NAME + "='1']{box-sizing:border-box!important;padding:2px 8px!important;border:1px solid rgba(34,211,238,.72)!important;border-radius:6px!important;background:rgba(8,145,178,.28)!important;color:#cffafe!important;box-shadow:0 0 0 1px rgba(34,211,238,.12)!important}",
+      "html[data-agents-rtl-active='1'] button[" + CODEX_ADD_TO_CHAT_BUTTON_ATTRIBUTE_NAME + "='1']:hover{background:rgba(8,145,178,.42)!important;color:#ecfeff!important}",
       "html[data-agents-rtl-active='1'] [" + CODEX_RESPONSE_ANNOTATION_TEXT_ATTRIBUTE_NAME + "]{box-sizing:border-box!important;background-color:rgba(78,201,176,.14)!important;border-inline-start:2px solid rgba(78,201,176,.78)!important;border-radius:4px!important;padding:3px 6px!important}",
       "html[data-agents-rtl-active='1'] [data-browser-comment-editor-surface='true']{background:#123b37!important;border:1px solid rgba(45,212,191,.55)!important}",
       "html[data-agents-rtl-active='1'] [" + CODEX_RESPONSE_ANNOTATION_KIND_ATTRIBUTE_NAME + "='selected-text']{background:rgba(8,145,178,.18)!important;border-inline-start:3px solid #22d3ee!important;border-radius:6px!important;padding:6px 8px!important}",

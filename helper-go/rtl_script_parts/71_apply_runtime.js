@@ -17,6 +17,7 @@
         }
         [...document.body.querySelectorAll(PERMISSION_PROMPT_TEXT_SELECTOR)].forEach(applyTextDirection);
         applyCodexResponseAnnotationTextDirection();
+        applyCodexAddToChatButtonHighlight();
       }
       const nativeChatPanel = getNativeChatPanel();
       if (nativeChatPanel) {

@@ -35,9 +35,9 @@
     markWebviewMessageBubble(element);
     if (isPlainTextCodeBlock(element)) {
       setAttributeIfChanged(element, PLAIN_TEXT_CODE_BLOCK_ATTRIBUTE_NAME, "1");
-      setAttributeIfChanged(element, "dir", "rtl");
+      setAttributeIfChanged(element, "dir", "auto");
       setStyleValueIfChanged(element, "unicodeBidi", "plaintext");
-      setStyleValueIfChanged(element, "textAlign", "right");
+      setStyleValueIfChanged(element, "textAlign", "start");
       return;
     }
     setAttributeIfChanged(element, "dir", containsArabicCharacters(element.textContent) ? "rtl" : "ltr");
@@ -70,5 +70,15 @@
         const annotationKind = normalizedLabel === "selected text:" ? "selected-text" : "user-comment";
         setAttributeIfChanged(annotationSectionElement, CODEX_RESPONSE_ANNOTATION_KIND_ATTRIBUTE_NAME, annotationKind);
       });
+    });
+  };
+  const applyCodexAddToChatButtonHighlight = () => {
+    document.querySelectorAll("button").forEach((buttonElement) => {
+      const isAddToChatButton = buttonElement.textContent.trim() === CODEX_ADD_TO_CHAT_BUTTON_LABEL;
+      if (isAddToChatButton) {
+        setAttributeIfChanged(buttonElement, CODEX_ADD_TO_CHAT_BUTTON_ATTRIBUTE_NAME, "1");
+        return;
+      }
+      removeAttributeIfPresent(buttonElement, CODEX_ADD_TO_CHAT_BUTTON_ATTRIBUTE_NAME);
     });
   };

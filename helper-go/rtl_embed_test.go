@@ -8,8 +8,8 @@ import (
 )
 
 const expectedRTLScriptPartCount = 81
-const expectedRTLScriptByteLength = 210057
-const expectedRTLScriptSHA256 = "890c5f6fbdc9fa7b551d318ead5598a9e5da01993eecab87e3d4eea51da3d7d8"
+const expectedRTLScriptByteLength = 211637
+const expectedRTLScriptSHA256 = "edc039bda56e472a48993eeb3cfb9d04f1a448eeb68409a4def4a99fbddfc471"
 
 var expectedRTLScriptPartNames = []string{
 	"00_00_prelude_start.js",
@@ -134,6 +134,24 @@ func TestRTLScriptIncludesCodexResponseAnnotationDirectionAndHighlight(t *testin
 		"data-composer-attachment-pill='true'",
 		"='selected-text']",
 		"='user-comment']",
+	}
+	for _, requiredFragment := range requiredFragments {
+		if !strings.Contains(assembledScript, requiredFragment) {
+			t.Fatalf("assembled RTL script is missing %q", requiredFragment)
+		}
+	}
+}
+
+func TestRTLScriptIncludesAutomaticPlainTextDirectionAndAddToChatHighlight(t *testing.T) {
+	assembledScript := mustAssembleRTLScript()
+	requiredFragments := []string{
+		"new Set([\"txt\", \"text\", \"plaintext\", \"plain text\"])",
+		"setAttributeIfChanged(element, \"dir\", \"auto\")",
+		"[dir='auto']:dir(rtl)",
+		"[dir='auto']:dir(ltr)",
+		"data-agents-rtl-codex-add-to-chat-button",
+		"const CODEX_ADD_TO_CHAT_BUTTON_LABEL = \"Add to chat\"",
+		"applyCodexAddToChatButtonHighlight();",
 	}
 	for _, requiredFragment := range requiredFragments {
 		if !strings.Contains(assembledScript, requiredFragment) {

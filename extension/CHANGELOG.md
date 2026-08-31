@@ -1,5 +1,9 @@
 # 📝 Changelog
 
+## 🚀 0.0.81 - 2026-08-31
+
+- ↔️ Improved plain-text direction and Add to chat visibility.
+
 ## 🚀 0.0.74 - 2026-08-13
 
 - 🎨 Clearer reply attachments.

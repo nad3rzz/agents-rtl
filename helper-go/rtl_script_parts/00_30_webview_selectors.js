@@ -5,7 +5,7 @@
     "div[class*='_footer_']",
     "[data-composer-footer-responsive]",
   ].join(",");
-  const PLAIN_TEXT_CODE_BLOCK_LANGUAGE_LABELS = new Set(["txt", "text", "plaintext"]);
+  const PLAIN_TEXT_CODE_BLOCK_LANGUAGE_LABELS = new Set(["txt", "text", "plaintext", "plain text"]);
   const PLAIN_TEXT_CODE_BLOCK_SELECTOR = [
     "div.text-size-chat.overflow-y-auto.p-2",
     "div.text-size-chat.overflow-auto.p-2",

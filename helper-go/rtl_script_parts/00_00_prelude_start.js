@@ -8,6 +8,8 @@
   const PREVIOUS_WIDTH_ATTRIBUTE_NAME = "data-agents-rtl-previous-width";
   const PREVIOUS_FLEX_ATTRIBUTE_NAME = "data-agents-rtl-previous-flex";
   const PLAIN_TEXT_CODE_BLOCK_ATTRIBUTE_NAME = "data-agents-rtl-plain-text-code-block";
+  const CODEX_ADD_TO_CHAT_BUTTON_ATTRIBUTE_NAME = "data-agents-rtl-codex-add-to-chat-button";
+  const CODEX_ADD_TO_CHAT_BUTTON_LABEL = "Add to chat";
   const MESSAGE_BUBBLE_ATTRIBUTE_NAME = "data-agents-rtl-message-bubble";
   const CODEX_RESPONSE_ANNOTATION_TEXT_ATTRIBUTE_NAME = "data-agents-rtl-codex-response-annotation-text";
   const CODEX_RESPONSE_ANNOTATION_KIND_ATTRIBUTE_NAME = "data-agents-rtl-codex-response-annotation-kind";
@@ -16,4 +18,4 @@
   const COMPOSER_EDITOR_ATTRIBUTE_NAME = "data-agents-rtl-composer-editor";
   const NATIVE_VSC_COMPOSER_ATTRIBUTE_NAME = "data-agents-rtl-native-vscode-composer";
   const GEMINI_COMPOSER_ATTRIBUTE_NAME = "data-agents-rtl-gemini-composer";
-  const SCRIPT_VERSION = "0.0.80";
+  const SCRIPT_VERSION = "0.0.81";

@@ -60,6 +60,9 @@
     document.querySelectorAll("[" + CODEX_RESPONSE_ANNOTATION_KIND_ATTRIBUTE_NAME + "]").forEach((element) => {
       element.removeAttribute(CODEX_RESPONSE_ANNOTATION_KIND_ATTRIBUTE_NAME);
     });
+    document.querySelectorAll("[" + CODEX_ADD_TO_CHAT_BUTTON_ATTRIBUTE_NAME + "]").forEach((element) => {
+      element.removeAttribute(CODEX_ADD_TO_CHAT_BUTTON_ATTRIBUTE_NAME);
+    });
     installStyle();
     installControlButtons();
     syncScrollButtons();

@@ -2,7 +2,7 @@
   "name": "agents-rtl-personal",
   "displayName": "Agents RTL Personal",
   "description": "Private local tools for Codex accounts and native Git repository visibility.",
-  "version": "0.0.27",
+  "version": "0.0.28",
   "publisher": "nad3r",
   "license": "UNLICENSED",
   "engines": {
@@ -24,6 +24,9 @@
     "vscode.git"
   ],
   "contributes": {
+    "configurationDefaults": {
+      "scm.alwaysShowRepositories": true
+    },
     "commands": [
       {
         "command": "agentsRtlPersonal.openAccountsPanel",

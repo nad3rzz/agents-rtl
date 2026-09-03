@@ -13,6 +13,11 @@ const REPOSITORY_EVENT_IGNORED_DIRECTORY_NAMES = Object.freeze([
   "nosync",
   "tmp",
 ]);
+const REPOSITORY_FILE_EVENT_ACTION = Object.freeze({
+  IGNORE: "ignore",
+  CANCEL_PENDING_CLOSE: "cancel-pending-close",
+  OPEN_CLOSED_REPOSITORY: "open-closed-repository",
+});
 
 function requireRepositoryState(repository) {
   if (!repository || typeof repository !== "object") {
@@ -126,9 +131,23 @@ function repositoryFileEventShouldWake(repositoryRootPath, fileSystemPath) {
   );
 }
 
+function repositoryFileEventAction(repositoryRootPath, fileSystemPath, repositoryIsOpen) {
+  if (typeof repositoryIsOpen !== "boolean") {
+    throw new Error("Repository open state must be boolean.");
+  }
+  if (!repositoryFileEventShouldWake(repositoryRootPath, fileSystemPath)) {
+    return REPOSITORY_FILE_EVENT_ACTION.IGNORE;
+  }
+  return repositoryIsOpen
+    ? REPOSITORY_FILE_EVENT_ACTION.CANCEL_PENDING_CLOSE
+    : REPOSITORY_FILE_EVENT_ACTION.OPEN_CLOSED_REPOSITORY;
+}
+
 module.exports = {
+  REPOSITORY_FILE_EVENT_ACTION,
   countRepositoryChanges,
   findManagedRepositoryRootPath,
+  repositoryFileEventAction,
   repositoryFileEventShouldWake,
   repositoryHasPendingSynchronization,
   repositoryNativeStateIsReady,

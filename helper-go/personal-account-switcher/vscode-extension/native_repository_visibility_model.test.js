@@ -3,8 +3,10 @@
 const assert = require("node:assert/strict");
 const test = require("node:test");
 const {
+  REPOSITORY_FILE_EVENT_ACTION,
   countRepositoryChanges,
   findManagedRepositoryRootPath,
+  repositoryFileEventAction,
   repositoryFileEventShouldWake,
   repositoryHasPendingSynchronization,
   repositoryNativeStateIsReady,
@@ -142,5 +144,33 @@ test("repositoryFileEventShouldWake ignores Git metadata and local temporary dat
   assert.equal(
     repositoryFileEventShouldWake(repositoryRootPath, `${repositoryRootPath}/src/index.js`),
     true,
+  );
+});
+
+test("repositoryFileEventAction cancels a stale close when a tracked file changes", () => {
+  const repositoryRootPath = "/workspace/projects/vazoka";
+  const changedFilePath = `${repositoryRootPath}/.gitignore`;
+
+  assert.equal(
+    repositoryFileEventAction(repositoryRootPath, changedFilePath, true),
+    REPOSITORY_FILE_EVENT_ACTION.CANCEL_PENDING_CLOSE,
+  );
+  assert.equal(
+    repositoryFileEventAction(repositoryRootPath, changedFilePath, false),
+    REPOSITORY_FILE_EVENT_ACTION.OPEN_CLOSED_REPOSITORY,
+  );
+});
+
+test("repositoryFileEventAction ignores excluded file events regardless of open state", () => {
+  const repositoryRootPath = "/workspace/projects/vazoka";
+  const ignoredFilePath = `${repositoryRootPath}/.git/FETCH_HEAD`;
+
+  assert.equal(
+    repositoryFileEventAction(repositoryRootPath, ignoredFilePath, true),
+    REPOSITORY_FILE_EVENT_ACTION.IGNORE,
+  );
+  assert.equal(
+    repositoryFileEventAction(repositoryRootPath, ignoredFilePath, false),
+    REPOSITORY_FILE_EVENT_ACTION.IGNORE,
   );
 });

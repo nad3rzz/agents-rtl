@@ -2,8 +2,9 @@
 
 const vscode = require("vscode");
 const {
+  REPOSITORY_FILE_EVENT_ACTION,
   findManagedRepositoryRootPath,
-  repositoryFileEventShouldWake,
+  repositoryFileEventAction,
   repositoryNativeStateIsReady,
   repositoryShouldRemainVisible,
 } = require("./native_repository_visibility_model");
@@ -286,13 +287,24 @@ function handleWorkspaceFileEvent(fileUri) {
   if (!rootPath) {
     return;
   }
-  if (!repositoryFileEventShouldWake(rootPath, fileUri.fsPath)) {
+  const repositoryIsOpen = Boolean(requireGitApi().getRepository(vscode.Uri.file(rootPath)));
+  const fileEventAction = repositoryFileEventAction(
+    rootPath,
+    fileUri.fsPath,
+    repositoryIsOpen,
+  );
+  if (fileEventAction === REPOSITORY_FILE_EVENT_ACTION.IGNORE) {
     return;
   }
-  if (requireGitApi().getRepository(vscode.Uri.file(rootPath))) {
+  if (fileEventAction === REPOSITORY_FILE_EVENT_ACTION.CANCEL_PENDING_CLOSE) {
+    cancelRepositoryClose(rootPath);
     return;
   }
-  scheduleClosedRepositoryOpen(rootPath);
+  if (fileEventAction === REPOSITORY_FILE_EVENT_ACTION.OPEN_CLOSED_REPOSITORY) {
+    scheduleClosedRepositoryOpen(rootPath);
+    return;
+  }
+  throw new Error(`Unsupported repository file event action: ${fileEventAction}`);
 }
 
 function disposeNativeRepositoryVisibilityController() {

@@ -3,6 +3,7 @@
 const vscode = require("vscode");
 const {
   REPOSITORY_FILE_EVENT_ACTION,
+  findClosedManagedRepositoryRootPaths,
   findManagedRepositoryRootPath,
   repositoryFileEventAction,
   repositoryNativeStateIsReady,
@@ -208,8 +209,17 @@ async function initializeNativeRepositoryVisibilityAfterGitApiReady() {
     evaluateNativeRepositoryState(repository);
   }
 
+  const openRepositoryRootPaths = gitApi.repositories.map(repositoryRootPath);
+  const closedManagedRepositoryRootPaths = findClosedManagedRepositoryRootPaths(
+    Array.from(managedRepositoryRootPaths),
+    openRepositoryRootPaths,
+  );
+  for (const rootPath of closedManagedRepositoryRootPaths) {
+    await openClosedRepositoryForNativeEvaluation(rootPath, "startup");
+  }
+
   requireOutputChannel().info(
-    `Native repository visibility active for ${managedRepositoryRootPaths.size} repositories.`,
+    `Native repository visibility tracking ${managedRepositoryRootPaths.size} repositories.`,
   );
 }
 
@@ -261,6 +271,13 @@ function scheduleClosedRepositoryOpen(rootPath) {
 
 async function openClosedRepositoryAfterFileEvent(rootPath) {
   repositoryOpenTimeoutsByRootPath.delete(rootPath);
+  await openClosedRepositoryForNativeEvaluation(rootPath, "file event");
+}
+
+async function openClosedRepositoryForNativeEvaluation(rootPath, triggerName) {
+  if (triggerName !== "startup" && triggerName !== "file event") {
+    throw new Error(`Unsupported repository open trigger: ${triggerName}`);
+  }
   const gitApi = requireGitApi();
   const repositoryUri = vscode.Uri.file(rootPath);
   if (gitApi.getRepository(repositoryUri)) {
@@ -273,7 +290,9 @@ async function openClosedRepositoryAfterFileEvent(rootPath) {
     repositoryRootPathsAwaitingNativeState.delete(rootPath);
     throw new Error(`Native Git API did not reopen repository: ${rootPath}`);
   }
-  requireOutputChannel().info(`Reopened repository after file event: ${rootPath}`);
+  requireOutputChannel().info(
+    `Reopened repository for native evaluation after ${triggerName}: ${rootPath}`,
+  );
 }
 
 function handleWorkspaceFileEvent(fileUri) {

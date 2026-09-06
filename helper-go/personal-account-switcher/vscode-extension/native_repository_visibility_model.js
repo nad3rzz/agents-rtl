@@ -110,6 +110,26 @@ function findManagedRepositoryRootPath(managedRepositoryRootPaths, fileSystemPat
   return matchingRepositoryRootPaths[0] || null;
 }
 
+function findClosedManagedRepositoryRootPaths(
+  managedRepositoryRootPaths,
+  openRepositoryRootPaths,
+) {
+  if (!Array.isArray(managedRepositoryRootPaths)) {
+    throw new Error("Managed Git repository roots must be an array.");
+  }
+  if (!Array.isArray(openRepositoryRootPaths)) {
+    throw new Error("Open Git repository roots must be an array.");
+  }
+
+  const normalizedOpenRepositoryRootPaths = new Set(
+    openRepositoryRootPaths.map(requireAbsoluteRepositoryRootPath),
+  );
+  return managedRepositoryRootPaths
+    .map(requireAbsoluteRepositoryRootPath)
+    .filter((rootPath) => !normalizedOpenRepositoryRootPaths.has(rootPath))
+    .sort((leftPath, rightPath) => leftPath.localeCompare(rightPath));
+}
+
 function repositoryFileEventShouldWake(repositoryRootPath, fileSystemPath) {
   const normalizedRepositoryRootPath = requireAbsoluteRepositoryRootPath(repositoryRootPath);
   if (typeof fileSystemPath !== "string" || !path.isAbsolute(fileSystemPath)) {
@@ -146,6 +166,7 @@ function repositoryFileEventAction(repositoryRootPath, fileSystemPath, repositor
 module.exports = {
   REPOSITORY_FILE_EVENT_ACTION,
   countRepositoryChanges,
+  findClosedManagedRepositoryRootPaths,
   findManagedRepositoryRootPath,
   repositoryFileEventAction,
   repositoryFileEventShouldWake,

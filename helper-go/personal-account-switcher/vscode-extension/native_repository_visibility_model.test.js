@@ -5,6 +5,7 @@ const test = require("node:test");
 const {
   REPOSITORY_FILE_EVENT_ACTION,
   countRepositoryChanges,
+  findClosedManagedRepositoryRootPaths,
   findManagedRepositoryRootPath,
   repositoryFileEventAction,
   repositoryFileEventShouldWake,
@@ -123,6 +124,26 @@ test("findManagedRepositoryRootPath selects the deepest matching repository", ()
   assert.equal(
     findManagedRepositoryRootPath(repositoryRootPaths, "/workspace/unmanaged/file.js"),
     null,
+  );
+});
+
+test("findClosedManagedRepositoryRootPaths finds repositories missing from native Git API", () => {
+  const managedRepositoryRootPaths = [
+    "/workspace/projects/vazoka",
+    "/workspace/projects/browser",
+    "/workspace/projects/thndr",
+  ];
+  const openRepositoryRootPaths = [
+    "/workspace/projects/vazoka",
+    "/workspace/projects/thndr",
+  ];
+
+  assert.deepEqual(
+    findClosedManagedRepositoryRootPaths(
+      managedRepositoryRootPaths,
+      openRepositoryRootPaths,
+    ),
+    ["/workspace/projects/browser"],
   );
 });
 

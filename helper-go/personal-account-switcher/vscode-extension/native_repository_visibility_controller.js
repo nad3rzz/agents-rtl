@@ -5,6 +5,7 @@ const {
   REPOSITORY_FILE_EVENT_ACTION,
   findClosedManagedRepositoryRootPaths,
   findManagedRepositoryRootPath,
+  managedRepositoryRootPathIsStale,
   repositoryFileEventAction,
   repositoryNativeStateIsReady,
   repositoryShouldRemainVisible,
@@ -110,6 +111,50 @@ function rememberManagedRepositoryRootPath(rootPath) {
   return managedRepositoryRootPathPersistencePromise;
 }
 
+async function fileSystemPathExists(fileUri, pathDescription) {
+  try {
+    await vscode.workspace.fs.stat(fileUri);
+    return true;
+  } catch (error) {
+    if (error instanceof vscode.FileSystemError && error.code === "FileNotFound") {
+      return false;
+    }
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    throw new Error(`Cannot inspect ${pathDescription}: ${errorMessage}`, { cause: error });
+  }
+}
+
+async function removeStaleManagedRepositoryRootPaths() {
+  const staleRepositoryRootPaths = [];
+  for (const rootPath of managedRepositoryRootPaths) {
+    const repositoryRootUri = vscode.Uri.file(rootPath);
+    const repositoryRootExists = await fileSystemPathExists(
+      repositoryRootUri,
+      `managed repository root ${rootPath}`,
+    );
+    const gitMetadataExists = repositoryRootExists
+      ? await fileSystemPathExists(
+        vscode.Uri.joinPath(repositoryRootUri, ".git"),
+        `Git metadata for managed repository ${rootPath}`,
+      )
+      : false;
+    if (managedRepositoryRootPathIsStale(repositoryRootExists, gitMetadataExists)) {
+      staleRepositoryRootPaths.push(rootPath);
+    }
+  }
+
+  if (staleRepositoryRootPaths.length === 0) {
+    return;
+  }
+  for (const rootPath of staleRepositoryRootPaths) {
+    managedRepositoryRootPaths.delete(rootPath);
+    requireOutputChannel().info(`Removed stale managed repository path: ${rootPath}`);
+  }
+  managedRepositoryRootPathPersistencePromise =
+    managedRepositoryRootPathPersistencePromise.then(persistManagedRepositoryRootPaths);
+  await managedRepositoryRootPathPersistencePromise;
+}
+
 function cancelRepositoryClose(rootPath) {
   const closeTimeout = repositoryCloseTimeoutsByRootPath.get(rootPath);
   if (closeTimeout !== undefined) {
@@ -208,6 +253,8 @@ async function initializeNativeRepositoryVisibilityAfterGitApiReady() {
     subscribeToRepositoryState(repository);
     evaluateNativeRepositoryState(repository);
   }
+
+  await removeStaleManagedRepositoryRootPaths();
 
   const openRepositoryRootPaths = gitApi.repositories.map(repositoryRootPath);
   const closedManagedRepositoryRootPaths = findClosedManagedRepositoryRootPaths(

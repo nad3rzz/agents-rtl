@@ -7,6 +7,7 @@ const {
   countRepositoryChanges,
   findClosedManagedRepositoryRootPaths,
   findManagedRepositoryRootPath,
+  managedRepositoryRootPathIsStale,
   repositoryFileEventAction,
   repositoryFileEventShouldWake,
   repositoryHasPendingSynchronization,
@@ -145,6 +146,12 @@ test("findClosedManagedRepositoryRootPaths finds repositories missing from nativ
     ),
     ["/workspace/projects/browser"],
   );
+});
+
+test("managedRepositoryRootPathIsStale identifies removed repositories", () => {
+  assert.equal(managedRepositoryRootPathIsStale(false, false), true);
+  assert.equal(managedRepositoryRootPathIsStale(true, false), true);
+  assert.equal(managedRepositoryRootPathIsStale(true, true), false);
 });
 
 test("repositoryFileEventShouldWake ignores Git metadata and local temporary data", () => {

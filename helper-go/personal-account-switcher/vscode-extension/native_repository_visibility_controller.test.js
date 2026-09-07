@@ -18,5 +18,7 @@ test("native repository visibility never starts a second Git status scan", () =>
   assert.match(controllerSource, /nativeRepositoryVisibilityGitApi\.onDidChangeState/);
   assert.match(controllerSource, /gitApi\.openRepository/);
   assert.match(controllerSource, /openClosedRepositoryForNativeEvaluation\(rootPath, "startup"\)/);
+  assert.match(controllerSource, /removeStaleManagedRepositoryRootPaths\(\)/);
+  assert.match(controllerSource, /error\.code === "FileNotFound"/);
   assert.match(controllerSource, /executeCommand\("git\.close"/);
 });

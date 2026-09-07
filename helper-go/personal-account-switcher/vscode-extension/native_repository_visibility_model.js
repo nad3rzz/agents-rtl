@@ -163,11 +163,22 @@ function repositoryFileEventAction(repositoryRootPath, fileSystemPath, repositor
     : REPOSITORY_FILE_EVENT_ACTION.OPEN_CLOSED_REPOSITORY;
 }
 
+function managedRepositoryRootPathIsStale(repositoryRootExists, gitMetadataExists) {
+  if (typeof repositoryRootExists !== "boolean") {
+    throw new Error("Repository root existence must be boolean.");
+  }
+  if (typeof gitMetadataExists !== "boolean") {
+    throw new Error("Repository Git metadata existence must be boolean.");
+  }
+  return !repositoryRootExists || !gitMetadataExists;
+}
+
 module.exports = {
   REPOSITORY_FILE_EVENT_ACTION,
   countRepositoryChanges,
   findClosedManagedRepositoryRootPaths,
   findManagedRepositoryRootPath,
+  managedRepositoryRootPathIsStale,
   repositoryFileEventAction,
   repositoryFileEventShouldWake,
   repositoryHasPendingSynchronization,

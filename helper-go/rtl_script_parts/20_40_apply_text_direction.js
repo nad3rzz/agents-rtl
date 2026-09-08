@@ -28,6 +28,12 @@
     const messageBubble = findWebviewMessageBubble(element);
     if (messageBubble) setAttributeIfChanged(messageBubble, MESSAGE_BUBBLE_ATTRIBUTE_NAME, "1");
   };
+  const applyPlainTextCodeBlockLineDirections = (plainTextCodeBlockElement) => {
+    const lineElements = plainTextCodeBlockElement.querySelectorAll(":scope > code > span > span");
+    for (const lineElement of lineElements) {
+      setManagedTextDirection(lineElement, "auto", "start", "plaintext");
+    }
+  };
   const applyTextDirection = (element) => {
     if (shouldSkipElement(element)) return;
     storeOriginalPresentationState(element);
@@ -38,6 +44,7 @@
       setAttributeIfChanged(element, "dir", "auto");
       setStyleValueIfChanged(element, "unicodeBidi", "plaintext");
       setStyleValueIfChanged(element, "textAlign", "start");
+      applyPlainTextCodeBlockLineDirections(element);
       return;
     }
     setAttributeIfChanged(element, "dir", containsArabicCharacters(element.textContent) ? "rtl" : "ltr");

@@ -1,5 +1,9 @@
 # 📝 Changelog
 
+## 🚀 0.0.82 - 2026-09-08
+
+- ↔️ Improved plain text and unread replies.
+
 ## 🚀 0.0.81 - 2026-08-31
 
 - ↔️ Improved plain-text direction and Add to chat visibility.

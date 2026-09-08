@@ -3,6 +3,7 @@
     return (Array.isArray(rawConversations) ? rawConversations : [])
       .map((conversation) => {
         const lastActivity = codexLastActivityFromConversationRecord(conversation);
+        const nativeUnreadState = codexNativeUnreadStateFromConversationRecord(conversation);
         return {
           id: codexConversationIdFromRecord(conversation),
           title: codexConversationTitleFromRecord(conversation),
@@ -10,6 +11,8 @@
           path: conversation?.path || "",
           activityKey: lastActivity.activityKey,
           activityIsAgentReply: lastActivity.isAgentReply,
+          nativeUnreadStateKnown: nativeUnreadState.isKnown,
+          nativeHasUnreadTurn: nativeUnreadState.hasUnreadTurn,
           archived: conversation?.archived === true,
         };
       })
@@ -20,6 +23,8 @@
         path: conversation.path,
         activityKey: conversation.activityKey,
         activityIsAgentReply: conversation.activityIsAgentReply,
+        nativeUnreadStateKnown: conversation.nativeUnreadStateKnown,
+        nativeHasUnreadTurn: conversation.nativeHasUnreadTurn,
         archived: conversation.archived,
       }))
       .filter((conversation) => conversation.id && conversation.title && !conversation.archived)
@@ -53,6 +58,11 @@
       activityKey: conversation.activityKey || activityFallbacksById.get(conversation.id)?.activityKey || "",
       activityIsAgentReply: conversation.activityIsAgentReply === true ||
         activityFallbacksById.get(conversation.id)?.activityIsAgentReply === true,
+      nativeUnreadStateKnown: conversation.nativeUnreadStateKnown === true ||
+        activityFallbacksById.get(conversation.id)?.nativeUnreadStateKnown === true,
+      nativeHasUnreadTurn: conversation.nativeUnreadStateKnown === true
+        ? conversation.nativeHasUnreadTurn === true
+        : activityFallbacksById.get(conversation.id)?.nativeHasUnreadTurn === true,
     }));
     helperConversations.forEach((conversation) => {
       if (reactConversationIds.has(conversation.id)) return;

@@ -26,21 +26,49 @@
       conversation?.thread?.turns,
       conversation?.conversation?.turns,
     ].find(Array.isArray) || [];
+  const codexConversationUpdatedAtFromRecord = (conversation) =>
+    [
+      conversation?.updatedAt,
+      conversation?.thread?.updatedAt,
+      conversation?.conversation?.updatedAt,
+    ].map(compactText).find(Boolean) || "";
+  const codexNativeUnreadStateFromConversationRecord = (conversation) => {
+    const hasUnreadTurnValues = [
+      conversation?.hasUnreadTurn,
+      conversation?.thread?.hasUnreadTurn,
+      conversation?.conversation?.hasUnreadTurn,
+    ].filter((value) => typeof value === "boolean");
+    const unreadMessageCountValues = [
+      conversation?.unreadMessageCount,
+      conversation?.thread?.unreadMessageCount,
+      conversation?.conversation?.unreadMessageCount,
+    ].filter(Number.isFinite);
+    return {
+      isKnown: hasUnreadTurnValues.length > 0 || unreadMessageCountValues.length > 0,
+      hasUnreadTurn: hasUnreadTurnValues.some(Boolean) ||
+        unreadMessageCountValues.some((unreadMessageCount) => unreadMessageCount > 0),
+    };
+  };
   const codexLastActivityFromConversationRecord = (conversation) => {
     const turns = codexConversationTurnsFromRecord(conversation);
     const lastTurn = turns.at(-1) || null;
     const lastItems = Array.isArray(lastTurn?.items) ? lastTurn.items : [];
     const lastItem = lastItems.at(-1) || null;
     const lastItemType = compactText(lastItem?.type || "");
-    const activityKey = [
+    const turnActivityKey = [
       turns.length,
       lastTurn?.turnId || lastTurn?.id || "",
       lastTurn?.status || "",
       lastItem?.id || "",
       lastItemType,
     ].map(compactText).join(":");
+    const conversationId = codexConversationIdFromRecord(conversation);
+    const updatedAt = codexConversationUpdatedAtFromRecord(conversation);
+    const conversationUpdateActivityKey = conversationId && updatedAt
+      ? ["conversation-updated-at", conversationId, updatedAt].join(":")
+      : "";
     return {
-      activityKey: activityKey === "::::" ? "" : activityKey,
+      activityKey: conversationUpdateActivityKey || (turnActivityKey === "::::" ? "" : turnActivityKey),
       isAgentReply: lastItemType === "agentMessage" ||
         lastItemType === "assistant-message" ||
         lastItem?.role === "assistant" ||

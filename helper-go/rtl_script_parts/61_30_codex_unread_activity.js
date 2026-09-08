@@ -6,6 +6,10 @@
     saveCodexActivityKeys(activityKeys);
     queueCodexActivityKeyRequest(conversation.id, conversation.activityKey);
   };
+  const codexConversationHasUnreadAgentReply = (conversation) =>
+    conversation.nativeUnreadStateKnown === true
+      ? conversation.nativeHasUnreadTurn === true
+      : conversation.activityIsAgentReply === true;
   const updateCodexUnreadConversationIds = (conversations, activeConversationId) => {
     const validConversationIds = new Set(conversations.map((conversation) => conversation.id));
     const activityKeys = storedCodexActivityKeys();
@@ -20,6 +24,7 @@
     conversations.forEach((conversation) => {
       if (!conversation.activityKey) return;
       const storedActivityKey = activityKeys[conversation.id] || "";
+      const hasUnreadAgentReply = codexConversationHasUnreadAgentReply(conversation);
       if (conversation.id === activeConversationId) {
         if (storedActivityKey !== conversation.activityKey) {
           activityKeys[conversation.id] = conversation.activityKey;
@@ -29,12 +34,16 @@
         return;
       }
       if (!storedActivityKey) {
+        if (hasUnreadAgentReply) {
+          unreadConversationIds.add(conversation.id);
+          return;
+        }
         activityKeys[conversation.id] = conversation.activityKey;
         changedActivityKeyRequests.push({ id: conversation.id, activityKey: conversation.activityKey });
         activityKeysChanged = true;
         return;
       }
-      if (storedActivityKey !== conversation.activityKey && conversation.activityIsAgentReply === true) {
+      if (storedActivityKey !== conversation.activityKey && hasUnreadAgentReply) {
         unreadConversationIds.add(conversation.id);
       }
     });

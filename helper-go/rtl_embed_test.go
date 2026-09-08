@@ -8,8 +8,8 @@ import (
 )
 
 const expectedRTLScriptPartCount = 81
-const expectedRTLScriptByteLength = 214865
-const expectedRTLScriptSHA256 = "c75d32c61d922535a577bd01e2abe953093171bc519dfb5e11907cce8079f698"
+const expectedRTLScriptByteLength = 216009
+const expectedRTLScriptSHA256 = "949d721cd525135a6e293c950c3f2e8f57941ab79d3379b5a68162e0d2a9e966"
 
 var expectedRTLScriptPartNames = []string{
 	"00_00_prelude_start.js",
@@ -165,7 +165,9 @@ func TestRTLScriptIncludesAutomaticPlainTextDirectionAndAddToChatHighlight(t *te
 func TestRTLScriptIncludesNativeCodexUnreadState(t *testing.T) {
 	assembledScript := mustAssembleRTLScript()
 	requiredFragments := []string{
-		"conversation-updated-at",
+		"codexConversationTurnsFromTurnHistory",
+		"history.entitiesByKey",
+		"history.islands",
 		"nativeUnreadStateKnown",
 		"nativeHasUnreadTurn",
 		"codexConversationHasUnreadAgentReply",

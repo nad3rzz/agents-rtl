@@ -1,6 +1,6 @@
 # 📝 Changelog
 
-## 🚀 0.0.82 - 2026-09-08
+## 🚀 0.0.83 - 2026-09-08
 
 - ↔️ Improved plain text and unread replies.
 

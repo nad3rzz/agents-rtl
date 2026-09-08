@@ -18,4 +18,4 @@
   const COMPOSER_EDITOR_ATTRIBUTE_NAME = "data-agents-rtl-composer-editor";
   const NATIVE_VSC_COMPOSER_ATTRIBUTE_NAME = "data-agents-rtl-native-vscode-composer";
   const GEMINI_COMPOSER_ATTRIBUTE_NAME = "data-agents-rtl-gemini-composer";
-  const SCRIPT_VERSION = "0.0.82";
+  const SCRIPT_VERSION = "0.0.83";

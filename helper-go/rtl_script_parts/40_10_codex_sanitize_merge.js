@@ -2,15 +2,16 @@
     const seenConversationIds = new Set();
     return (Array.isArray(rawConversations) ? rawConversations : [])
       .map((conversation) => {
-        const lastActivity = codexLastActivityFromConversationRecord(conversation);
+        const latestCompletedAgentReply = codexLatestCompletedAgentReplyFromConversationRecord(conversation);
         const nativeUnreadState = codexNativeUnreadStateFromConversationRecord(conversation);
         return {
           id: codexConversationIdFromRecord(conversation),
           title: codexConversationTitleFromRecord(conversation),
           hostId: compactText(conversation?.hostId || conversation?.thread?.hostId || conversation?.conversation?.hostId),
           path: conversation?.path || "",
-          activityKey: lastActivity.activityKey,
-          activityIsAgentReply: lastActivity.isAgentReply,
+          activityKey: latestCompletedAgentReply.activityKey,
+          activityOccurredAtMs: latestCompletedAgentReply.occurredAtMs,
+          activityIsAgentReply: latestCompletedAgentReply.isAgentReply,
           nativeUnreadStateKnown: nativeUnreadState.isKnown,
           nativeHasUnreadTurn: nativeUnreadState.hasUnreadTurn,
           archived: conversation?.archived === true,
@@ -22,6 +23,7 @@
         hostId: conversation.hostId,
         path: conversation.path,
         activityKey: conversation.activityKey,
+        activityOccurredAtMs: conversation.activityOccurredAtMs,
         activityIsAgentReply: conversation.activityIsAgentReply,
         nativeUnreadStateKnown: conversation.nativeUnreadStateKnown,
         nativeHasUnreadTurn: conversation.nativeHasUnreadTurn,
@@ -56,6 +58,8 @@
       hostId: conversation.hostId || hostIdFallbacksById.get(conversation.id) || "",
       path: conversation.path || pathFallbacksById.get(conversation.id) || "",
       activityKey: conversation.activityKey || activityFallbacksById.get(conversation.id)?.activityKey || "",
+      activityOccurredAtMs: conversation.activityOccurredAtMs ||
+        activityFallbacksById.get(conversation.id)?.activityOccurredAtMs || 0,
       activityIsAgentReply: conversation.activityIsAgentReply === true ||
         activityFallbacksById.get(conversation.id)?.activityIsAgentReply === true,
       nativeUnreadStateKnown: conversation.nativeUnreadStateKnown === true ||
@@ -70,7 +74,32 @@
     });
     return mergedConversations.filter((conversation) => conversation.id && conversation.title);
   };
-  const sanitizeCodexConversations = () => mergeCodexConversationSources();
+  const synchronizeCodexLatestAgentReplyActivities = (conversations) => {
+    const sharedActivities = sharedCodexLatestAgentReplyActivities();
+    return conversations.map((conversation) => {
+      queueCodexLatestAgentReplyActivityRequest(conversation);
+      const sharedActivity = sharedActivities[conversation.id];
+      if (!sharedActivity || sharedActivity.occurredAtMs < conversation.activityOccurredAtMs) {
+        return conversation;
+      }
+      if (sharedActivity.occurredAtMs === conversation.activityOccurredAtMs) {
+        if (conversation.activityKey && sharedActivity.activityKey !== conversation.activityKey) {
+          throw new Error("Conflicting latest agent reply activity for conversation " + conversation.id);
+        }
+        return conversation;
+      }
+      return {
+        ...conversation,
+        activityKey: sharedActivity.activityKey,
+        activityOccurredAtMs: sharedActivity.occurredAtMs,
+        activityIsAgentReply: true,
+        nativeUnreadStateKnown: false,
+        nativeHasUnreadTurn: false,
+      };
+    });
+  };
+  const sanitizeCodexConversations = () =>
+    synchronizeCodexLatestAgentReplyActivities(mergeCodexConversationSources());
   const updateCodexConversations = () => {
     consumeCodexProcessedArchiveIds();
     const conversations = sanitizeCodexConversations();

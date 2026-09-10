@@ -7,10 +7,9 @@
     queueCodexActivityKeyRequest(conversation.id, conversation.activityKey);
   };
   const codexConversationHasUnreadAgentReply = (conversation) =>
-    conversation.nativeUnreadStateKnown === true
-      ? conversation.nativeHasUnreadTurn === true
-      : conversation.activityIsAgentReply === true;
-  const updateCodexUnreadConversationIds = (conversations, activeConversationId) => {
+    conversation.activityIsAgentReply === true &&
+    (conversation.nativeUnreadStateKnown !== true || conversation.nativeHasUnreadTurn === true);
+  const updateCodexUnreadConversationIds = (conversations, activeConversationId, pendingApprovalTitleSet) => {
     const validConversationIds = new Set(conversations.map((conversation) => conversation.id));
     const activityKeys = storedCodexActivityKeys();
     const unreadConversationIds = new Set();
@@ -33,6 +32,7 @@
         }
         return;
       }
+      if (codexConversationNeedsApproval(conversation, pendingApprovalTitleSet)) return;
       if (!storedActivityKey) {
         if (hasUnreadAgentReply) {
           unreadConversationIds.add(conversation.id);

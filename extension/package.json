@@ -2,7 +2,7 @@
   "name": "agents-rtl",
   "displayName": "Agents RTL",
   "description": "Arabic RTL, chat tabs, and scroll controls for Codex, Gemini Code Assist, and agent chats in VS Code and Antigravity.",
-  "version": "0.0.83",
+  "version": "0.0.84",
   "publisher": "nad3r",
   "icon": "images/marketplace/icon.png",
   "license": "SEE LICENSE IN LICENSE",

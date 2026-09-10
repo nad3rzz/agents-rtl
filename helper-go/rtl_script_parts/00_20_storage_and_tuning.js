@@ -10,6 +10,7 @@
   const CODEX_CHAT_RECENT_STORAGE_KEY = "agentsRtl.codexChatTabs.recent";
   const CODEX_CHAT_ACTIVITY_STORAGE_KEY = "agentsRtl.codexChatTabs.activityKeys";
   const CODEX_CHAT_ACTIVITY_REQUESTS_STORAGE_KEY = "agentsRtl.codexChatTabs.activityKeyRequests";
+  const CODEX_CHAT_LATEST_AGENT_REPLY_ACTIVITY_REQUESTS_STORAGE_KEY = "agentsRtl.codexChatTabs.latestAgentReplyActivityRequests";
   const BUTTON_CLUSTER_POSITION_STORAGE_KEY_PREFIX = "agentsRtl.buttonClusterPosition:";
   const CODEX_CHAT_VISIBLE_TAB_LIMIT = 4;
   const CODEX_AWAITING_APPROVAL_TEXT = "Awaiting approval";

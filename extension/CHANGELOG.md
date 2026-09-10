@@ -1,5 +1,9 @@
 # 📝 Changelog
 
+## 🚀 0.0.84 - 2026-09-09
+
+- 🔵 Shared unread replies.
+
 ## 🚀 0.0.83 - 2026-09-08
 
 - ↔️ Improved plain text and unread replies.

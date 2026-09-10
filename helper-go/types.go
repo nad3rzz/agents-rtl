@@ -41,14 +41,29 @@ type codexActivityKeyRequest struct {
 	RequestedAt float64 `json:"requestedAt"`
 }
 
+type codexLatestAgentReplyActivity struct {
+	ActivityKey  string  `json:"activityKey"`
+	OccurredAtMs float64 `json:"occurredAtMs"`
+}
+
+type codexLatestAgentReplyActivityRequest struct {
+	ID                     string  `json:"id"`
+	ActivityKey            string  `json:"activityKey"`
+	OccurredAtMs           float64 `json:"occurredAtMs"`
+	NativeUnreadStateKnown bool    `json:"nativeUnreadStateKnown"`
+	NativeHasUnreadTurn    bool    `json:"nativeHasUnreadTurn"`
+}
+
 type codexPreferencePayload struct {
-	TabOrderRequests    []codexTabOrderRequest    `json:"tabOrderRequests"`
-	ActivityKeyRequests []codexActivityKeyRequest `json:"activityKeyRequests"`
+	TabOrderRequests                 []codexTabOrderRequest                 `json:"tabOrderRequests"`
+	ActivityKeyRequests              []codexActivityKeyRequest              `json:"activityKeyRequests"`
+	LatestAgentReplyActivityRequests []codexLatestAgentReplyActivityRequest `json:"latestAgentReplyActivityRequests"`
 }
 
 type codexSharedPreferences struct {
-	CodexChatOrder        []string          `json:"codexChatOrder,omitempty"`
-	CodexChatActivityKeys map[string]string `json:"codexChatActivityKeys,omitempty"`
+	CodexChatOrder                  []string                                 `json:"codexChatOrder,omitempty"`
+	CodexChatActivityKeys           map[string]string                        `json:"codexChatActivityKeys,omitempty"`
+	CodexLatestAgentReplyActivities map[string]codexLatestAgentReplyActivity `json:"codexLatestAgentReplyActivities,omitempty"`
 }
 
 type codexArchiveRow struct {

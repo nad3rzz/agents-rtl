@@ -82,24 +82,33 @@
         unreadMessageCountValues.some((unreadMessageCount) => unreadMessageCount > 0),
     };
   };
-  const codexLastActivityFromConversationRecord = (conversation) => {
+  const codexItemIsAgentReply = (item) =>
+    item?.type === "agentMessage" ||
+    item?.type === "assistant-message" ||
+    item?.role === "assistant" ||
+    item?.author?.role === "assistant";
+  const codexItemIsFinalAgentReply = (item) =>
+    codexItemIsAgentReply(item) && (!item?.phase || item.phase === "final_answer");
+  const codexLatestCompletedAgentReplyFromConversationRecord = (conversation) => {
     const turns = codexConversationTurnsFromRecord(conversation);
-    const lastTurn = turns.at(-1) || null;
-    const lastItems = Array.isArray(lastTurn?.items) ? lastTurn.items : [];
-    const lastItem = lastItems.at(-1) || null;
-    const lastItemType = compactText(lastItem?.type || "");
-    const activityKey = [
-      turns.length,
-      lastTurn?.turnId || lastTurn?.id || "",
-      lastTurn?.status || "",
-      lastItem?.id || "",
-      lastItemType,
-    ].map(compactText).join(":");
-    return {
-      activityKey: activityKey === "::::" ? "" : activityKey,
-      isAgentReply: lastItemType === "agentMessage" ||
-        lastItemType === "assistant-message" ||
-        lastItem?.role === "assistant" ||
-        lastItem?.author?.role === "assistant",
-    };
+    for (let turnIndex = turns.length - 1; turnIndex >= 0; turnIndex -= 1) {
+      const turn = turns[turnIndex];
+      if (turn?.status !== "completed" || !Array.isArray(turn.items)) continue;
+      for (let itemIndex = turn.items.length - 1; itemIndex >= 0; itemIndex -= 1) {
+        const item = turn.items[itemIndex];
+        if (!codexItemIsFinalAgentReply(item)) continue;
+        const turnId = compactText(turn.turnId || turn.id);
+        const itemId = compactText(item.id);
+        const occurredAtMs = Number(turn.finalAssistantStartedAtMs || turn.turnStartedAtMs);
+        if (!turnId || !itemId || !Number.isFinite(occurredAtMs) || occurredAtMs <= 0) {
+          throw new Error("Codex completed agent reply is missing its identity or timestamp.");
+        }
+        return {
+          activityKey: ["agent-reply", turnId, itemId].join(":"),
+          occurredAtMs,
+          isAgentReply: true,
+        };
+      }
+    }
+    return { activityKey: "", occurredAtMs: 0, isAgentReply: false };
   };

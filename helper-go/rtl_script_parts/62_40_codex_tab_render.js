@@ -31,7 +31,11 @@
     const orderedConversations = orderCodexConversations(conversations);
     const activeConversationId = findActiveCodexConversationId(orderedConversations);
     if (activeConversationId) rememberCodexRecentConversation(activeConversationId, orderedConversations);
-    const unreadConversationIds = updateCodexUnreadConversationIds(orderedConversations, activeConversationId);
+    const unreadConversationIds = updateCodexUnreadConversationIds(
+      orderedConversations,
+      activeConversationId,
+      pendingApprovalTitleSet
+    );
     const { visibleConversations, overflowConversations } = splitVisibleCodexConversations(orderedConversations, activeConversationId);
     const pendingArchiveConversationIds = pendingCodexArchiveConversationIdSet();
     const renderKey = orderedConversations

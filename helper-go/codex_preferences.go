@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"math"
 	"os"
 	"path/filepath"
 	"strings"
@@ -19,7 +20,7 @@ func processCodexPreferenceRequests(port int, targets []debuggerTarget) error {
 
 	payloads := []codexPreferencePayload{}
 	sourceTargets := []debuggerTarget{}
-	hasRequestQueues := false
+	hasPreferenceRequestQueues := false
 	for _, target := range targets {
 		if !isOpenAIWebviewTarget(target) {
 			continue
@@ -36,8 +37,10 @@ func processCodexPreferenceRequests(port int, targets []debuggerTarget) error {
 
 		sourceTargets = append(sourceTargets, target)
 		for _, payload := range targetPayloads {
-			if len(payload.TabOrderRequests) > 0 {
-				hasRequestQueues = true
+			if len(payload.TabOrderRequests) > 0 ||
+				len(payload.ActivityKeyRequests) > 0 ||
+				len(payload.LatestAgentReplyActivityRequests) > 0 {
+				hasPreferenceRequestQueues = true
 			}
 			payloads = append(payloads, payload)
 		}
@@ -49,7 +52,7 @@ func processCodexPreferenceRequests(port int, targets []debuggerTarget) error {
 	if err := applyCodexPreferencePayloads(codexHome, payloads); err != nil {
 		return err
 	}
-	if !hasRequestQueues {
+	if !hasPreferenceRequestQueues {
 		return nil
 	}
 
@@ -89,6 +92,7 @@ func clearCodexPreferenceRequestsFromTarget(port int, target debuggerTarget) err
 func codexPreferenceReadScript() string {
 	tabOrderRequestsKeyJSON := mustMarshalJSONString(codexTabOrderRequestsKey)
 	activityRequestsKeyJSON := mustMarshalJSONString(codexActivityRequestsKey)
+	latestAgentReplyActivityRequestsKeyJSON := mustMarshalJSONString(codexLatestAgentReplyActivityRequestsKey)
 	return fmt.Sprintf(`(() => {
   const parseJson = (key, fallback) => {
     const rawValue = localStorage.getItem(key);
@@ -98,18 +102,21 @@ func codexPreferenceReadScript() string {
   return {
     tabOrderRequests: parseJson(%s, []),
     activityKeyRequests: parseJson(%s, []),
+    latestAgentReplyActivityRequests: parseJson(%s, []),
   };
-})()`, tabOrderRequestsKeyJSON, activityRequestsKeyJSON)
+})()`, tabOrderRequestsKeyJSON, activityRequestsKeyJSON, latestAgentReplyActivityRequestsKeyJSON)
 }
 
 func codexPreferenceRequestsClearScript() string {
 	tabOrderRequestsKeyJSON := mustMarshalJSONString(codexTabOrderRequestsKey)
 	activityRequestsKeyJSON := mustMarshalJSONString(codexActivityRequestsKey)
+	latestAgentReplyActivityRequestsKeyJSON := mustMarshalJSONString(codexLatestAgentReplyActivityRequestsKey)
 	return fmt.Sprintf(`(() => {
   localStorage.removeItem(%s);
   localStorage.removeItem(%s);
+  localStorage.removeItem(%s);
   return true;
-})()`, tabOrderRequestsKeyJSON, activityRequestsKeyJSON)
+})()`, tabOrderRequestsKeyJSON, activityRequestsKeyJSON, latestAgentReplyActivityRequestsKeyJSON)
 }
 
 func decodeCodexPreferencePayload(value any) (codexPreferencePayload, error) {
@@ -148,21 +155,58 @@ func decodeCodexPreferencePayload(value any) (codexPreferencePayload, error) {
 		filteredActivityKeyRequests = append(filteredActivityKeyRequests, request)
 	}
 	payload.ActivityKeyRequests = filteredActivityKeyRequests
+	for index, request := range payload.LatestAgentReplyActivityRequests {
+		request.ID = strings.TrimSpace(request.ID)
+		request.ActivityKey = compactDisplayText(request.ActivityKey)
+		if request.ID == "" {
+			return codexPreferencePayload{}, fmt.Errorf("latest agent reply activity request %d is missing id", index)
+		}
+		if request.ActivityKey == "" {
+			return codexPreferencePayload{}, fmt.Errorf("latest agent reply activity request %d is missing activityKey", index)
+		}
+		if request.OccurredAtMs <= 0 || math.IsNaN(request.OccurredAtMs) || math.IsInf(request.OccurredAtMs, 0) {
+			return codexPreferencePayload{}, fmt.Errorf("latest agent reply activity request %d has invalid occurredAtMs", index)
+		}
+		payload.LatestAgentReplyActivityRequests[index] = request
+	}
 	return payload, nil
 }
 
 func codexPreferencePayloadIsEmpty(payload codexPreferencePayload) bool {
 	return len(payload.TabOrderRequests) == 0 &&
-		len(payload.ActivityKeyRequests) == 0
+		len(payload.ActivityKeyRequests) == 0 &&
+		len(payload.LatestAgentReplyActivityRequests) == 0
 }
 
 func applyCodexPreferencePayloads(codexHome string, payloads []codexPreferencePayload) error {
+	if err := os.MkdirAll(codexHome, 0700); err != nil {
+		return err
+	}
+	lockFile, err := acquireCodexPreferencesFileLock(codexPreferencesFileLockPath(codexHome))
+	if err != nil {
+		return err
+	}
+	applyErr := applyCodexPreferencePayloadsWhileLocked(codexHome, payloads)
+	releaseErr := releaseCodexPreferencesFileLock(lockFile)
+	if applyErr != nil {
+		if releaseErr != nil {
+			return fmt.Errorf("apply Codex preferences: %w; release preferences lock: %v", applyErr, releaseErr)
+		}
+		return applyErr
+	}
+	return releaseErr
+}
+
+func applyCodexPreferencePayloadsWhileLocked(codexHome string, payloads []codexPreferencePayload) error {
 	preferences, err := readCodexSharedPreferences(codexHome)
 	if err != nil {
 		return err
 	}
 	if preferences.CodexChatActivityKeys == nil {
 		preferences.CodexChatActivityKeys = map[string]string{}
+	}
+	if preferences.CodexLatestAgentReplyActivities == nil {
+		preferences.CodexLatestAgentReplyActivities = map[string]codexLatestAgentReplyActivity{}
 	}
 
 	changed := false
@@ -173,6 +217,13 @@ func applyCodexPreferencePayloads(codexHome string, payloads []codexPreferencePa
 			}
 			preferences.CodexChatOrder = request.IDs
 			changed = true
+		}
+		for _, request := range payload.LatestAgentReplyActivityRequests {
+			requestChangedPreferences, err := applyCodexLatestAgentReplyActivityRequest(&preferences, request)
+			if err != nil {
+				return err
+			}
+			changed = requestChangedPreferences || changed
 		}
 		for _, request := range payload.ActivityKeyRequests {
 			if preferences.CodexChatActivityKeys[request.ID] == request.ActivityKey {
@@ -187,6 +238,42 @@ func applyCodexPreferencePayloads(codexHome string, payloads []codexPreferencePa
 		return nil
 	}
 	return writeCodexSharedPreferences(codexHome, preferences)
+}
+
+func codexPreferencesFileLockPath(codexHome string) string {
+	return filepath.Join(codexHome, ".agents-rtl-preferences.lock")
+}
+
+func applyCodexLatestAgentReplyActivityRequest(
+	preferences *codexSharedPreferences,
+	request codexLatestAgentReplyActivityRequest,
+) (bool, error) {
+	currentActivity, currentActivityExists := preferences.CodexLatestAgentReplyActivities[request.ID]
+	if currentActivityExists && request.OccurredAtMs < currentActivity.OccurredAtMs {
+		return false, nil
+	}
+	if currentActivityExists && request.OccurredAtMs == currentActivity.OccurredAtMs {
+		if request.ActivityKey != currentActivity.ActivityKey {
+			return false, fmt.Errorf(
+				"conflicting latest agent reply activities for conversation %s at %.0f",
+				request.ID,
+				request.OccurredAtMs,
+			)
+		}
+		return false, nil
+	}
+
+	preferences.CodexLatestAgentReplyActivities[request.ID] = codexLatestAgentReplyActivity{
+		ActivityKey:  request.ActivityKey,
+		OccurredAtMs: request.OccurredAtMs,
+	}
+	changed := true
+	if !currentActivityExists && request.NativeUnreadStateKnown && !request.NativeHasUnreadTurn &&
+		preferences.CodexChatActivityKeys[request.ID] != request.ActivityKey {
+		preferences.CodexChatActivityKeys[request.ID] = request.ActivityKey
+		changed = true
+	}
+	return changed, nil
 }
 
 func codexSharedPreferencesPath(codexHome string) string {
@@ -212,12 +299,25 @@ func readCodexSharedPreferences(codexHome string) (codexSharedPreferences, error
 	}
 	preferences.CodexChatOrder = sanitizeCodexConversationIDList(preferences.CodexChatOrder)
 	preferences.CodexChatActivityKeys = sanitizeCodexActivityKeyMap(preferences.CodexChatActivityKeys)
+	preferences.CodexLatestAgentReplyActivities, err = sanitizeCodexLatestAgentReplyActivityMap(
+		preferences.CodexLatestAgentReplyActivities,
+	)
+	if err != nil {
+		return codexSharedPreferences{}, fmt.Errorf("invalid latest agent reply activities in %s: %w", preferencesPath, err)
+	}
 	return preferences, nil
 }
 
 func writeCodexSharedPreferences(codexHome string, preferences codexSharedPreferences) error {
 	preferences.CodexChatOrder = sanitizeCodexConversationIDList(preferences.CodexChatOrder)
 	preferences.CodexChatActivityKeys = sanitizeCodexActivityKeyMap(preferences.CodexChatActivityKeys)
+	latestAgentReplyActivities, err := sanitizeCodexLatestAgentReplyActivityMap(
+		preferences.CodexLatestAgentReplyActivities,
+	)
+	if err != nil {
+		return err
+	}
+	preferences.CodexLatestAgentReplyActivities = latestAgentReplyActivities
 	preferencesPath := codexSharedPreferencesPath(codexHome)
 	if err := os.MkdirAll(filepath.Dir(preferencesPath), 0700); err != nil {
 		return err
@@ -265,6 +365,31 @@ func sanitizeCodexActivityKeyMap(activityKeyMap map[string]string) map[string]st
 		sanitizedValues[conversationID] = activityKey
 	}
 	return sanitizedValues
+}
+
+func sanitizeCodexLatestAgentReplyActivityMap(
+	activityMap map[string]codexLatestAgentReplyActivity,
+) (map[string]codexLatestAgentReplyActivity, error) {
+	if len(activityMap) == 0 {
+		return map[string]codexLatestAgentReplyActivity{}, nil
+	}
+
+	sanitizedValues := map[string]codexLatestAgentReplyActivity{}
+	for conversationID, activity := range activityMap {
+		conversationID = strings.TrimSpace(conversationID)
+		activity.ActivityKey = compactDisplayText(activity.ActivityKey)
+		if conversationID == "" {
+			return nil, errors.New("latest agent reply activity contains an empty conversation id")
+		}
+		if activity.ActivityKey == "" {
+			return nil, fmt.Errorf("latest agent reply activity %s has an empty activity key", conversationID)
+		}
+		if activity.OccurredAtMs <= 0 || math.IsNaN(activity.OccurredAtMs) || math.IsInf(activity.OccurredAtMs, 0) {
+			return nil, fmt.Errorf("latest agent reply activity %s has invalid occurredAtMs", conversationID)
+		}
+		sanitizedValues[conversationID] = activity
+	}
+	return sanitizedValues, nil
 }
 
 func sanitizeCodexConversationIDList(conversationIDs []string) []string {

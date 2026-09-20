@@ -12,6 +12,44 @@
     }, { capture: true });
     return renameButton;
   };
+  const setCodexClipboardButtonFeedback = (button, feedbackText) => {
+    const originalText = button.textContent;
+    button.textContent = feedbackText;
+    setTimeout(() => { button.textContent = originalText; }, CODEX_CLIPBOARD_FEEDBACK_DURATION_MS);
+  };
+  const copyCodexTextWithButtonFeedback = (button, text, description) => {
+    if (typeof text !== "string" || text.length === 0) {
+      setCodexClipboardButtonFeedback(button, "❌");
+      console.error(new Error("Cannot copy missing " + description + "."));
+      return;
+    }
+    navigator.clipboard.writeText(text).then(() => {
+      setCodexClipboardButtonFeedback(button, "✔️");
+    }).catch((error) => {
+      setCodexClipboardButtonFeedback(button, "❌");
+      console.error("Agents RTL could not copy " + description + ".", error);
+    });
+  };
+  const personalSessionDoctorScriptPath = () => {
+    const scriptPath = window.__agentsRtlPersonalSessionDoctorScriptPath;
+    if (scriptPath === undefined || scriptPath === null || scriptPath === "") return "";
+    if (typeof scriptPath !== "string" || !scriptPath.startsWith("/")) {
+      throw new Error("Invalid personal session Doctor script path.");
+    }
+    return scriptPath;
+  };
+  const personalSessionDoctorIsEnabled = () => personalSessionDoctorScriptPath() !== "";
+  const quotePosixShellArgument = (value) => "'" + String(value).replaceAll("'", "'\"'\"'") + "'";
+  const codexSessionDoctorCommand = (conversation) => {
+    const scriptPath = personalSessionDoctorScriptPath();
+    if (!scriptPath) throw new Error("Personal session Doctor is not enabled.");
+    if (typeof conversation?.path !== "string" || !conversation.path.startsWith("/")) {
+      throw new Error("Codex conversation path is missing or invalid.");
+    }
+    return "python3 " + quotePosixShellArgument(scriptPath) +
+      " clean --session " + quotePosixShellArgument(conversation.path) +
+      " --apply --allow-open-session";
+  };
   const createCodexConversationPathButton = (conversation) => {
     const pathButton = document.createElement("button");
     pathButton.type = "button";
@@ -23,19 +61,43 @@
       event.preventDefault();
       event.stopPropagation();
       event.stopImmediatePropagation?.();
-      const path = conversation.path;
-      if (!path) {
-        const originalText = pathButton.textContent;
-        pathButton.textContent = "❌";
-        setTimeout(() => { pathButton.textContent = originalText; }, 1200);
-        return;
-      }
-      navigator.clipboard.writeText(path).catch(() => {});
-      const originalText = pathButton.textContent;
-      pathButton.textContent = "✔️";
-      setTimeout(() => { pathButton.textContent = originalText; }, 1200);
+      copyCodexTextWithButtonFeedback(pathButton, conversation.path, "Codex conversation path");
     }, { capture: true });
     return pathButton;
+  };
+  const createCodexConversationDoctorButton = (conversation, buttonClassName = CODEX_CHAT_DOCTOR_BUTTON_CLASS_NAME) => {
+    if (!personalSessionDoctorIsEnabled()) {
+      throw new Error("Cannot create a session Doctor button while the personal integration is disabled.");
+    }
+    const doctorButton = document.createElement("button");
+    doctorButton.type = "button";
+    doctorButton.className = buttonClassName;
+    doctorButton.dataset.conversationId = conversation.id;
+    doctorButton.textContent = "🩺";
+    doctorButton.title = "Copy session Doctor command";
+    doctorButton.setAttribute("aria-label", "Copy Codex session Doctor command");
+    doctorButton.addEventListener("click", (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      event.stopImmediatePropagation?.();
+      copyCodexTextWithButtonFeedback(
+        doctorButton,
+        codexSessionDoctorCommand(conversation),
+        "Codex session Doctor command"
+      );
+    }, { capture: true });
+    return doctorButton;
+  };
+  const createCodexConversationActionButtons = (conversation) => {
+    const actionButtons = [
+      createCodexConversationPathButton(conversation),
+      createCodexConversationRenameButton(conversation),
+    ];
+    if (personalSessionDoctorIsEnabled()) {
+      actionButtons.push(createCodexConversationDoctorButton(conversation));
+    }
+    actionButtons.push(createCodexConversationArchiveButton(conversation));
+    return actionButtons;
   };
   const createCodexConversationArchiveButton = (conversation) => {
     const archiveButton = document.createElement("button");

@@ -20,6 +20,7 @@ func injectAll(
 	port int,
 	workspaceCWDs []string,
 	codexCliPath string,
+	sessionDoctorScriptPath string,
 	resourceMonitor *codexResourceMonitor,
 ) error {
 	targets, err := fetchTargets(port)
@@ -85,7 +86,7 @@ func injectAll(
 			targetResourceMetrics = resourceMetrics
 		}
 
-		targetState, err := injectTarget(port, target, conversations, preferences, targetResourceMetrics)
+		targetState, err := injectTarget(port, target, conversations, preferences, targetResourceMetrics, sessionDoctorScriptPath)
 		if err != nil {
 			log.Printf("target %s failed: %v", target.ID, err)
 			continue
@@ -287,6 +288,7 @@ func injectTarget(
 	conversations []codexConversation,
 	preferences codexSharedPreferences,
 	resourceMetrics codexResourceMetrics,
+	sessionDoctorScriptPath string,
 ) (targetInjectionState, error) {
 	parsedURL, err := url.Parse(target.WebSocketDebuggerURL)
 	if err != nil {
@@ -310,7 +312,7 @@ func injectTarget(
 		return targetInjectionState{}, err
 	}
 
-	script, err := injectionScript(conversations, preferences, resourceMetrics)
+	script, err := injectionScript(conversations, preferences, resourceMetrics, sessionDoctorScriptPath)
 	if err != nil {
 		return targetInjectionState{}, err
 	}
@@ -355,6 +357,7 @@ func injectionScript(
 	conversations []codexConversation,
 	preferences codexSharedPreferences,
 	resourceMetrics codexResourceMetrics,
+	sessionDoctorScriptPath string,
 ) (string, error) {
 	conversationsJSON, err := json.Marshal(conversations)
 	if err != nil {
@@ -368,9 +371,14 @@ func injectionScript(
 	if err != nil {
 		return "", err
 	}
+	sessionDoctorScriptPathJSON, err := json.Marshal(sessionDoctorScriptPath)
+	if err != nil {
+		return "", err
+	}
 
 	return "window.__agentsRtlCodexConversations = " + string(conversationsJSON) + ";\n" +
 		"window.__agentsRtlCodexPreferences = " + string(preferencesJSON) + ";\n" +
 		"window.__agentsRtlCodexResourceMetrics = " + string(resourceMetricsJSON) + ";\n" +
+		"window.__agentsRtlPersonalSessionDoctorScriptPath = " + string(sessionDoctorScriptPathJSON) + ";\n" +
 		rtlScript + "\n({ resourceMonitorResetRequestId: String(window.__agentsRtl?.codexResourceMonitorResetRequestId || '') });", nil
 }

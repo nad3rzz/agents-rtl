@@ -50,7 +50,7 @@
         hideCodexFloatingConversationActions();
         if (selectedConversation) navigateToCodexConversation(selectedConversation);
       });
-      itemRow.append(itemButton, createCodexConversationPathButton(conversation), createCodexConversationRenameButton(conversation), createCodexConversationArchiveButton(conversation));
+      itemRow.append(itemButton, ...createCodexConversationActionButtons(conversation));
       menuElement.append(itemRow);
     });
     document.body.append(menuElement);

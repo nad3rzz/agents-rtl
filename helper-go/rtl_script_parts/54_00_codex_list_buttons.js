@@ -10,20 +10,12 @@
       event.preventDefault();
       event.stopPropagation();
       event.stopImmediatePropagation?.();
-      const path = conversation.path;
-      if (!path) {
-        const originalText = pathButton.textContent;
-        pathButton.textContent = "❌";
-        setTimeout(() => { pathButton.textContent = originalText; }, 1200);
-        return;
-      }
-      navigator.clipboard.writeText(path).catch(() => {});
-      const originalText = pathButton.textContent;
-      pathButton.textContent = "✔️";
-      setTimeout(() => { pathButton.textContent = originalText; }, 1200);
+      copyCodexTextWithButtonFeedback(pathButton, conversation.path, "Codex conversation path");
     }, { capture: true });
     return pathButton;
   };
+  const createCodexConversationListDoctorButton = (conversation) =>
+    createCodexConversationDoctorButton(conversation, CODEX_CHAT_LIST_DOCTOR_BUTTON_CLASS_NAME);
   const createCodexConversationListRenameButton = (conversation) => {
     const renameButton = document.createElement("button");
     renameButton.type = "button";

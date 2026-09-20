@@ -26,6 +26,8 @@ const DYNAMIC_DEVTOOLS_PORT_ARGUMENT_VALUE = 0;
 const RUNTIME_ARGUMENTS_SETUP_NOTIFICATION_KEY = "runtimeArgumentsSetupNotification";
 const CLOSE_EDITOR_ACTION = "Close editor";
 const OPENAI_CHATGPT_EXTENSION_ID = "openai.chatgpt";
+const AGENTS_RTL_PERSONAL_EXTENSION_ID = "nad3r.agents-rtl-personal";
+const BUNDLED_SESSION_DOCTOR_RELATIVE_PATH = path.join("tools", "codex_session_doctor.py");
 const PRODUCT_PROFILES = [
   {
     productName: "Antigravity",
@@ -178,6 +180,30 @@ function helperPath(context) {
     throw new Error(`Bundled helper binary is missing: ${resolvedPath}`);
   }
   return resolvedPath;
+}
+
+function personalSessionDoctorScriptPath(context) {
+  if (!vscode.extensions.getExtension(AGENTS_RTL_PERSONAL_EXTENSION_ID)) {
+    return "";
+  }
+  if (process.platform !== "linux") {
+    throw new Error("The personal session Doctor shortcut currently requires Linux.");
+  }
+
+  const candidatePaths = [
+    path.join(context.extensionPath, BUNDLED_SESSION_DOCTOR_RELATIVE_PATH),
+    path.resolve(context.extensionPath, "..", BUNDLED_SESSION_DOCTOR_RELATIVE_PATH),
+  ];
+  const existingPaths = candidatePaths.filter((candidatePath) => fs.existsSync(candidatePath));
+  if (existingPaths.length !== 1) {
+    throw new Error(
+      `Expected exactly one session Doctor script for ${AGENTS_RTL_PERSONAL_EXTENSION_ID}, found ${existingPaths.length}: ${candidatePaths.join(", ")}`
+    );
+  }
+  if (!fs.statSync(existingPaths[0]).isFile()) {
+    throw new Error(`Session Doctor path is not a file: ${existingPaths[0]}`);
+  }
+  return existingPaths[0];
 }
 
 function codexExecutableFileName() {
@@ -595,6 +621,7 @@ function startHelper(context) {
   const workspaceCwds = configuredWorkspaceCwds();
   const interval = String(configuredWatchIntervalMs());
   const codexCliPath = openAICodexCliPath();
+  const sessionDoctorScriptPath = personalSessionDoctorScriptPath(context);
   if (codexCliPath) {
     log(`Codex CLI path: ${codexCliPath}`);
   }
@@ -605,6 +632,10 @@ function startHelper(context) {
   helperArguments.push("--extension-host-pid", String(process.pid));
   if (codexCliPath) {
     helperArguments.push("--codex-cli", codexCliPath);
+  }
+  if (sessionDoctorScriptPath) {
+    helperArguments.push("--session-doctor-script", sessionDoctorScriptPath);
+    log(`Personal session Doctor enabled: ${sessionDoctorScriptPath}`);
   }
   const helperProcess = childProcess.spawn(executablePath, helperArguments, {
     cwd: context.extensionPath,

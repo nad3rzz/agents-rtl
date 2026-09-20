@@ -8,8 +8,8 @@ import (
 )
 
 const expectedRTLScriptPartCount = 81
-const expectedRTLScriptByteLength = 221808
-const expectedRTLScriptSHA256 = "21efc67e552aae3b9478cae544f284406726eaa85dfb249e8b96ac4fc3cafb2f"
+const expectedRTLScriptByteLength = 227613
+const expectedRTLScriptSHA256 = "67377588f3534d468f155e889ec8508bd0b732bedfccbd192a033d3770ee9457"
 
 var expectedRTLScriptPartNames = []string{
 	"00_00_prelude_start.js",
@@ -205,6 +205,24 @@ func TestRTLScriptIncludesCodexResourceMonitorToggleAndMetrics(t *testing.T) {
 		"uploadedBytesTotal",
 		"residentMemoryBytes",
 		"cpuPercent",
+	}
+	for _, requiredFragment := range requiredFragments {
+		if !strings.Contains(assembledScript, requiredFragment) {
+			t.Fatalf("assembled RTL script is missing %q", requiredFragment)
+		}
+	}
+}
+
+func TestRTLScriptIncludesPersonalSessionDoctorControls(t *testing.T) {
+	assembledScript := mustAssembleRTLScript()
+	requiredFragments := []string{
+		"__agentsRtlPersonalSessionDoctorScriptPath",
+		"agents-rtl-codex-chat-doctor-button",
+		"agents-rtl-codex-chat-list-doctor-button",
+		"Copy session Doctor command",
+		"clean --session ",
+		" --apply --allow-open-session",
+		"personalSessionDoctorIsEnabled()",
 	}
 	for _, requiredFragment := range requiredFragments {
 		if !strings.Contains(assembledScript, requiredFragment) {

@@ -9,8 +9,10 @@
   const CODEX_CHAT_RENAME_BUTTON_CLASS_NAME = "agents-rtl-codex-chat-rename-button";
   const CODEX_CHAT_ARCHIVE_BUTTON_CLASS_NAME = "agents-rtl-codex-chat-archive-button";
   const CODEX_CHAT_PATH_BUTTON_CLASS_NAME = "agents-rtl-codex-chat-path-button";
+  const CODEX_CHAT_DOCTOR_BUTTON_CLASS_NAME = "agents-rtl-codex-chat-doctor-button";
   const CODEX_CHAT_LIST_RENAME_BUTTON_CLASS_NAME = "agents-rtl-codex-chat-list-rename-button";
   const CODEX_CHAT_LIST_PATH_BUTTON_CLASS_NAME = "agents-rtl-codex-chat-list-path-button";
+  const CODEX_CHAT_LIST_DOCTOR_BUTTON_CLASS_NAME = "agents-rtl-codex-chat-list-doctor-button";
   const CODEX_CHAT_LIST_RENAME_ROW_ATTRIBUTE_NAME = "data-agents-rtl-codex-chat-list-rename-row";
   const CODEX_CHAT_LIST_RENAME_ROW_LOCATION_ATTRIBUTE_NAME = "data-agents-rtl-codex-chat-list-rename-row-location";
   const CODEX_CHAT_RENAME_EDITOR_ID = "agents-rtl-codex-chat-rename-editor";

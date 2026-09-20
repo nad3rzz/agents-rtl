@@ -1,5 +1,9 @@
 # 📝 Changelog
 
+## 🚀 0.0.85 - 2026-09-20
+
+- 🩺 Personal session tools.
+
 ## 🚀 0.0.84 - 2026-09-09
 
 - 🔵 Shared unread replies.

@@ -44,6 +44,18 @@ BACKUP_SUFFIX_MARKERS = [
 ]
 
 
+def read_ascii_yes_confirmation(prompt):
+    stdin_buffer = getattr(sys.stdin, "buffer", None)
+    if stdin_buffer is None:
+        raise RuntimeError("Interactive confirmation requires a binary stdin buffer.")
+    sys.stdout.write(prompt)
+    sys.stdout.flush()
+    answer_bytes = stdin_buffer.readline()
+    if answer_bytes == b"":
+        raise SystemExit("Aborted: confirmation input ended before an answer was received.")
+    return answer_bytes.strip().lower() in (b"y", b"yes")
+
+
 def expand_path(path_text):
     return str(Path(path_text).expanduser())
 
@@ -725,8 +737,7 @@ def command_clean(args):
             print("\n\n".join(open_errors))
             if not sys.stdin.isatty():
                 raise SystemExit("Refusing open-session clean without an interactive y/N confirmation.")
-            answer = input("\nClean open session files anyway? [y/N]: ").strip().lower()
-            if answer not in ("y", "yes"):
+            if not read_ascii_yes_confirmation("\nClean open session files anyway? [y/N]: "):
                 raise SystemExit("Aborted.")
 
     total_original_bytes = 0
@@ -769,8 +780,7 @@ def command_repair_tool_search(args):
             print("\n\n".join(open_errors))
             if not sys.stdin.isatty():
                 raise SystemExit("Refusing open-session repair without an interactive y/N confirmation.")
-            answer = input("\nRepair open session files anyway? [y/N]: ").strip().lower()
-            if answer not in ("y", "yes"):
+            if not read_ascii_yes_confirmation("\nRepair open session files anyway? [y/N]: "):
                 raise SystemExit("Aborted.")
 
     total_original_bytes = 0

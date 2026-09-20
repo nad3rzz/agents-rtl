@@ -14,6 +14,7 @@ func main() {
 	flag.Var(&workspaceCWDs, "workspace-cwd", "Workspace cwd used to scope Codex chat tabs. May be provided more than once")
 	intervalMs := flag.Int("interval-ms", 2500, "watch interval in milliseconds")
 	codexCliPath := flag.String("codex-cli", "", "Codex CLI path used for archiving Codex chats")
+	sessionDoctorScriptPath := flag.String("session-doctor-script", "", "Personal Codex session Doctor script path")
 	resourceMonitorPort := flag.Int("resource-monitor-port", 0, "Primary DevTools port whose Codex process may be monitored")
 	extensionHostProcessID := flag.Int("extension-host-pid", 0, "Extension Host process ID used to isolate the current Codex backend")
 	flag.Parse()
@@ -25,6 +26,9 @@ func main() {
 		log.Fatal(err)
 	}
 	if err := validateResourceMonitorArguments(ports, *resourceMonitorPort, *extensionHostProcessID); err != nil {
+		log.Fatal(err)
+	}
+	if err := validateSessionDoctorScriptPath(*sessionDoctorScriptPath); err != nil {
 		log.Fatal(err)
 	}
 
@@ -42,7 +46,7 @@ func main() {
 			if port == *resourceMonitorPort {
 				monitorForPort = resourceMonitor
 			}
-			if err := injectAll(port, []string(workspaceCWDs), *codexCliPath, monitorForPort); err != nil {
+			if err := injectAll(port, []string(workspaceCWDs), *codexCliPath, *sessionDoctorScriptPath, monitorForPort); err != nil {
 				log.Printf("inject failed on port %d: %v", port, err)
 			}
 		}

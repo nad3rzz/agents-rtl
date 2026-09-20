@@ -3,9 +3,28 @@ package main
 import (
 	"errors"
 	"fmt"
+	"os"
+	"path/filepath"
 	"strconv"
 	"strings"
 )
+
+func validateSessionDoctorScriptPath(sessionDoctorScriptPath string) error {
+	if sessionDoctorScriptPath == "" {
+		return nil
+	}
+	if !filepath.IsAbs(sessionDoctorScriptPath) {
+		return fmt.Errorf("session Doctor script path must be absolute: %s", sessionDoctorScriptPath)
+	}
+	fileInfo, err := os.Stat(sessionDoctorScriptPath)
+	if err != nil {
+		return fmt.Errorf("session Doctor script is unavailable at %s: %w", sessionDoctorScriptPath, err)
+	}
+	if !fileInfo.Mode().IsRegular() {
+		return fmt.Errorf("session Doctor script path is not a regular file: %s", sessionDoctorScriptPath)
+	}
+	return nil
+}
 
 type portFlags []int
 

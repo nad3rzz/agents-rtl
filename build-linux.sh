@@ -14,7 +14,7 @@ stage_and_package() {
 
   cd "$ROOT_DIR"
   rm -rf "$STAGING_DIR"
-  mkdir -p "$STAGING_DIR/bin"
+  mkdir -p "$STAGING_DIR/bin" "$STAGING_DIR/tools"
 
   rsync -a \
     --exclude "bin/**" \
@@ -23,6 +23,7 @@ stage_and_package() {
     "$STAGING_DIR"/
 
   cp "$DIST_DIR/$helper_file_name" "$STAGING_DIR/bin/$helper_file_name"
+  cp "$ROOT_DIR/tools/codex_session_doctor.py" "$STAGING_DIR/tools/codex_session_doctor.py"
 
   cd "$STAGING_DIR"
   npx --yes @vscode/vsce package \

@@ -54,17 +54,13 @@
     cancelCodexFloatingConversationActionsHide();
     const actionsBar = ensureCodexFloatingConversationActionsBar();
     const displayTitle = conversation.title;
-    const renderKey = conversation.id + ":" + conversation.title + ":" + displayTitle;
+    const renderKey = conversation.id + ":" + conversation.title + ":" + displayTitle + ":" + personalSessionDoctorIsEnabled();
     if (actionsBar.dataset.renderKey !== renderKey) {
       actionsBar.textContent = "";
       actionsBar.dataset.renderKey = renderKey;
       actionsBar.dataset.conversationId = conversation.id;
       actionsBar.title = displayTitle === conversation.title ? displayTitle : displayTitle + " (" + conversation.title + ")";
-      actionsBar.append(
-        createCodexConversationPathButton(conversation),
-        createCodexConversationRenameButton(conversation),
-        createCodexConversationArchiveButton(conversation)
-      );
+      actionsBar.append(...createCodexConversationActionButtons(conversation));
     }
     positionCodexFloatingConversationActions(actionsBar, anchorElement);
   };

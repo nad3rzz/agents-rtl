@@ -332,10 +332,11 @@ async function openClosedRepositoryForNativeEvaluation(rootPath, triggerName) {
   }
 
   repositoryRootPathsAwaitingNativeState.add(rootPath);
-  const repository = await gitApi.openRepository(repositoryUri);
+  await vscode.commands.executeCommand("git.openRepository", rootPath);
+  const repository = gitApi.getRepository(repositoryUri);
   if (!repository) {
     repositoryRootPathsAwaitingNativeState.delete(rootPath);
-    throw new Error(`Native Git API did not reopen repository: ${rootPath}`);
+    throw new Error(`Native Git command did not reopen repository: ${rootPath}`);
   }
   requireOutputChannel().info(
     `Reopened repository for native evaluation after ${triggerName}: ${rootPath}`,

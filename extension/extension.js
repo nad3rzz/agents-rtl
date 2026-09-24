@@ -628,8 +628,11 @@ function startHelper(context) {
   const helperArguments = ports.flatMap((port) => ["--port", port]);
   helperArguments.push(...workspaceCwds.flatMap((workspaceCwd) => ["--workspace-cwd", workspaceCwd]));
   helperArguments.push("--interval-ms", interval);
-  helperArguments.push("--resource-monitor-port", String(configuredPrimaryDevtoolsPort(context)));
-  helperArguments.push("--extension-host-pid", String(process.pid));
+  const personalExtensionIsInstalled = vscode.extensions.getExtension("nad3r.agents-rtl-personal") !== undefined;
+  if (personalExtensionIsInstalled) {
+    helperArguments.push("--resource-monitor-port", String(configuredPrimaryDevtoolsPort(context)));
+    helperArguments.push("--extension-host-pid", String(process.pid));
+  }
   if (codexCliPath) {
     helperArguments.push("--codex-cli", codexCliPath);
   }

@@ -8,8 +8,8 @@ import (
 )
 
 const expectedRTLScriptPartCount = 81
-const expectedRTLScriptByteLength = 227613
-const expectedRTLScriptSHA256 = "67377588f3534d468f155e889ec8508bd0b732bedfccbd192a033d3770ee9457"
+const expectedRTLScriptByteLength = 227700
+const expectedRTLScriptSHA256 = "50da402e2536fc77fc2a8e9ae6019f4521aae1b8595778a6398b2b38caa3fc83"
 
 var expectedRTLScriptPartNames = []string{
 	"00_00_prelude_start.js",
@@ -139,6 +139,14 @@ func TestRTLScriptIncludesCodexResponseAnnotationDirectionAndHighlight(t *testin
 		if !strings.Contains(assembledScript, requiredFragment) {
 			t.Fatalf("assembled RTL script is missing %q", requiredFragment)
 		}
+	}
+}
+
+func TestRTLScriptIncludesCurrentCodexApprovalTextContract(t *testing.T) {
+	assembledScript := mustAssembleRTLScript()
+	requiredFragment := "[data-codex-approval-surface='true'] [role='alert'] .text-size-chat.font-medium"
+	if !strings.Contains(assembledScript, requiredFragment) {
+		t.Fatalf("assembled RTL script is missing %q", requiredFragment)
 	}
 }
 

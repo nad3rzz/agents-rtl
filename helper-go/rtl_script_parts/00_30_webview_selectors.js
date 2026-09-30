@@ -18,6 +18,7 @@
     PERMISSION_PROMPT_CARD_SELECTOR + " .text-base.font-medium",
     PERMISSION_PROMPT_CARD_SELECTOR + " [class*='text-base'][class*='font-medium']",
     PERMISSION_PROMPT_CARD_SELECTOR + " [class*='text-size-chat'][class*='font-medium'][class*='text-token-foreground']",
+    "[data-codex-approval-surface='true'] [role='alert'] .text-size-chat.font-medium",
   ].join(",");
   const CODEX_RESPONSE_ANNOTATION_TEXT_SELECTOR =
     "li[class*='response-annotation'] .break-words.whitespace-pre-wrap";

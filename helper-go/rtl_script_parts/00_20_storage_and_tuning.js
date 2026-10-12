@@ -7,12 +7,28 @@
   const CODEX_CHAT_ARCHIVE_REQUESTS_STORAGE_KEY = "agentsRtl.codexChatTabs.archiveRequests";
   const CODEX_CHAT_PROCESSED_ARCHIVES_STORAGE_KEY = "agentsRtl.codexChatTabs.processedArchiveIds";
   const CODEX_PENDING_APPROVAL_TITLES_STORAGE_KEY = "agentsRtl.codexChatTabs.pendingApprovalTitles";
-  const CODEX_CHAT_RECENT_STORAGE_KEY = "agentsRtl.codexChatTabs.recent";
   const CODEX_CHAT_ACTIVITY_STORAGE_KEY = "agentsRtl.codexChatTabs.activityKeys";
   const CODEX_CHAT_ACTIVITY_REQUESTS_STORAGE_KEY = "agentsRtl.codexChatTabs.activityKeyRequests";
   const CODEX_CHAT_LATEST_AGENT_REPLY_ACTIVITY_REQUESTS_STORAGE_KEY = "agentsRtl.codexChatTabs.latestAgentReplyActivityRequests";
   const BUTTON_CLUSTER_POSITION_STORAGE_KEY_PREFIX = "agentsRtl.buttonClusterPosition:";
-  const CODEX_CHAT_VISIBLE_TAB_LIMIT = 4;
+  const CODEX_CHAT_HEADER_TITLE_RESERVED_WIDTH_PX = 150;
+  const CODEX_CHAT_TABS_MARGIN_INLINE_START_PX = 8;
+  const CODEX_CHAT_TAB_GAP_PX = 6;
+  const CODEX_CHAT_TAB_HORIZONTAL_CHROME_PX = 22;
+  const CODEX_CHAT_TAB_MINIMUM_WIDTH_PX = 44;
+  const CODEX_CHAT_TAB_MAXIMUM_WIDTH_PX = 170;
+  const CODEX_CHAT_OVERFLOW_BUTTON_WIDTH_PX = 54;
+  const CODEX_CHAT_APPROVAL_BADGE_TOTAL_WIDTH_PX = 21;
+  const CODEX_CHAT_UNREAD_BADGE_TOTAL_WIDTH_PX = 14;
+  const CODEX_CHAT_TAB_MEASUREMENT_FONT = "700 12px system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif";
+  const CODEX_RELATIVE_TIME_UNITS = [
+    { unit: "year", seconds: 31536000 },
+    { unit: "month", seconds: 2592000 },
+    { unit: "day", seconds: 86400 },
+    { unit: "hour", seconds: 3600 },
+    { unit: "minute", seconds: 60 },
+    { unit: "second", seconds: 1 },
+  ];
   const CODEX_AWAITING_APPROVAL_TEXT = "Awaiting approval";
   const CODEX_WAITING_ON_APPROVAL_FLAG = "waitingOnApproval";
   const CODEX_PENDING_APPROVAL_REFRESH_INTERVAL_MS = 2000;

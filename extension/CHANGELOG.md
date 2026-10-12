@@ -1,5 +1,9 @@
 # 📝 Changelog
 
+## 🚀 0.0.86 - 2026-10-12
+
+- 🕒 Smarter recent chat tabs.
+
 ## 🚀 0.0.85 - 2026-09-20
 
 - 🩺 Personal session tools.

@@ -30,24 +30,36 @@
     }
     const orderedConversations = orderCodexConversations(conversations);
     const activeConversationId = findActiveCodexConversationId(orderedConversations);
-    if (activeConversationId) rememberCodexRecentConversation(activeConversationId, orderedConversations);
     const unreadConversationIds = updateCodexUnreadConversationIds(
       orderedConversations,
       activeConversationId,
       pendingApprovalTitleSet
     );
-    const { visibleConversations, overflowConversations } = splitVisibleCodexConversations(orderedConversations, activeConversationId);
+    ensureCodexTabsHeaderResizeObserver(headerHost);
+    const visibleConversationLimit = calculateVisibleCodexConversationLimit(
+      orderedConversations,
+      activeConversationId,
+      headerHost,
+      pendingApprovalTitleSet,
+      unreadConversationIds
+    );
+    const { visibleConversations, overflowConversations } = splitVisibleCodexConversations(
+      orderedConversations,
+      activeConversationId,
+      visibleConversationLimit
+    );
     const pendingArchiveConversationIds = pendingCodexArchiveConversationIdSet();
     const renderKey = orderedConversations
       .map((conversation) =>
         conversation.id + ":" +
         conversation.title + ":" +
+        conversation.activityOccurredAtMs + ":" +
         (conversation.id === activeConversationId ? "1" : "0") + ":" +
         (codexConversationNeedsApproval(conversation, pendingApprovalTitleSet) ? "A" : "0") + ":" +
         (unreadConversationIds.has(conversation.id) ? "U" : "0") + ":" +
         (pendingArchiveConversationIds.has(conversation.id) ? "P" : "0")
       )
-      .join("|");
+      .join("|") + ":visible=" + visibleConversationLimit;
     if (tabsBar.dataset.renderKey === renderKey) return;
     tabsBar.dataset.renderKey = renderKey;
     closeCodexOverflowMenu();
@@ -62,7 +74,7 @@
       button.type = "button";
       button.dataset.conversationId = conversation.id;
       button.dataset.active = conversation.id === activeConversationId ? "1" : "0";
-      button.title = displayTitle;
+      button.title = codexConversationLastReplyTooltip(conversation);
       button.textContent = displayTitle;
       setCodexButtonPendingApproval(button, codexConversationNeedsApproval(conversation, pendingApprovalTitleSet));
       setCodexButtonUnread(button, unreadConversationIds.has(conversation.id));

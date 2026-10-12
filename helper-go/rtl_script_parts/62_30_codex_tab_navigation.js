@@ -1,7 +1,6 @@
   const navigateToCodexConversation = (conversation) => {
     hideCodexFloatingConversationActions();
     clearCodexHeaderElementCache();
-    rememberCodexRecentConversation(conversation.id, window[KEY]?.codexConversations || [conversation]);
     markCodexConversationActivitySeen(conversation);
     renderCodexChatTabs();
     window.dispatchEvent(new MessageEvent("message", {
@@ -36,6 +35,7 @@
     [80, 250, 700, 1400].forEach((delay) => setTimeout(renderCodexChatTabs, delay));
   };
   const removeCodexChatTabs = () => {
+    disconnectCodexTabsHeaderResizeObserver();
     clearCodexHeaderElementCache();
     document.getElementById(CODEX_CHAT_TABS_BAR_ID)?.remove();
     document.getElementById(CODEX_CHAT_ACTIVE_ACTIONS_ID)?.remove();

@@ -7,6 +7,7 @@
   window[KEY]?.removeCodexPendingApprovalRefreshTimer?.();
   window[KEY]?.removeGeminiHistoryTrim?.();
   window[KEY]?.disconnectApplyObserver?.();
+  window[KEY]?.disconnectCodexTabsHeaderResizeObserver?.();
   window[KEY]?.stop?.();
   [
     "__agentsRtlToolbarSlotDryInterval",

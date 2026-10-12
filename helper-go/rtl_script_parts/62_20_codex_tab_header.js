@@ -66,3 +66,37 @@
     const validConversationIds = new Set(conversations.map((conversation) => conversation.id));
     return findCurrentCodexConversationIdFromReact(validConversationIds);
   };
+  const handleCodexTabsHeaderResize = (entries) => {
+    const state = window[KEY];
+    if (!state?.codexTabsHeaderObservedElement) return;
+    let observedEntry = null;
+    for (const entry of entries) {
+      if (entry.target === state.codexTabsHeaderObservedElement) {
+        observedEntry = entry;
+        break;
+      }
+    }
+    if (!observedEntry) throw new Error("Codex tabs ResizeObserver did not include its observed header.");
+    const observedWidth = Math.round(observedEntry.contentRect.width);
+    if (observedWidth <= 0 || observedWidth === state.codexTabsHeaderObservedWidth) return;
+    state.codexTabsHeaderObservedWidth = observedWidth;
+    renderCodexChatTabs();
+  };
+  const disconnectCodexTabsHeaderResizeObserver = () => {
+    const state = window[KEY];
+    if (!state) return;
+    state.codexTabsHeaderResizeObserver?.disconnect();
+    state.codexTabsHeaderResizeObserver = null;
+    state.codexTabsHeaderObservedElement = null;
+    state.codexTabsHeaderObservedWidth = 0;
+  };
+  const ensureCodexTabsHeaderResizeObserver = (headerHost) => {
+    const state = window[KEY];
+    if (!state) throw new Error("Agents RTL state is unavailable for Codex tab resize observation.");
+    if (state.codexTabsHeaderObservedElement === headerHost && state.codexTabsHeaderResizeObserver) return;
+    disconnectCodexTabsHeaderResizeObserver();
+    state.codexTabsHeaderObservedElement = headerHost;
+    state.codexTabsHeaderObservedWidth = Math.round(headerHost.getBoundingClientRect().width);
+    state.codexTabsHeaderResizeObserver = new ResizeObserver(handleCodexTabsHeaderResize);
+    state.codexTabsHeaderResizeObserver.observe(headerHost);
+  };

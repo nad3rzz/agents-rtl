@@ -7,9 +7,9 @@ import (
 	"testing"
 )
 
-const expectedRTLScriptPartCount = 81
-const expectedRTLScriptByteLength = 227700
-const expectedRTLScriptSHA256 = "50da402e2536fc77fc2a8e9ae6019f4521aae1b8595778a6398b2b38caa3fc83"
+const expectedRTLScriptPartCount = 83
+const expectedRTLScriptByteLength = 234537
+const expectedRTLScriptSHA256 = "66bef806784607bfc535ecb50f00836cea36b6cb5cd3cf1672868cb928dce101"
 
 var expectedRTLScriptPartNames = []string{
 	"00_00_prelude_start.js",
@@ -48,6 +48,7 @@ var expectedRTLScriptPartNames = []string{
 	"35_20_control_bar_dom.js",
 	"40_00_codex_record_fields.js",
 	"40_10_codex_sanitize_merge.js",
+	"40_15_codex_activity_time.js",
 	"40_20_codex_tab_order_recent.js",
 	"40_30_codex_activity_keys.js",
 	"40_40_codex_shared_preferences.js",
@@ -78,6 +79,7 @@ var expectedRTLScriptPartNames = []string{
 	"61_20_codex_status_badges.js",
 	"61_30_codex_unread_activity.js",
 	"62_00_codex_tab_order.js",
+	"62_01_codex_tab_layout.js",
 	"62_10_codex_overflow_menu.js",
 	"62_11_codex_overflow_listeners.js",
 	"62_20_codex_tab_header.js",
@@ -184,6 +186,25 @@ func TestRTLScriptIncludesSharedCodexUnreadState(t *testing.T) {
 		"codexLatestCompletedAgentReplyFromConversationRecord",
 		"codexConversationNeedsApproval(conversation, pendingApprovalTitleSet)",
 		"if (hasUnreadAgentReply)",
+	}
+	for _, requiredFragment := range requiredFragments {
+		if !strings.Contains(assembledScript, requiredFragment) {
+			t.Fatalf("assembled RTL script is missing %q", requiredFragment)
+		}
+	}
+}
+
+func TestRTLScriptIncludesResponsiveLatestReplyTabLayout(t *testing.T) {
+	assembledScript := mustAssembleRTLScript()
+	requiredFragments := []string{
+		"codexConversationLastReplyTooltip",
+		"Intl.RelativeTimeFormat",
+		"compareCodexConversationOrderEntriesByLatestReply",
+		"calculateVisibleCodexConversationLimit",
+		"CODEX_CHAT_HEADER_TITLE_RESERVED_WIDTH_PX",
+		"new ResizeObserver(handleCodexTabsHeaderResize)",
+		"disconnectCodexTabsHeaderResizeObserver",
+		"conversation.activityOccurredAtMs",
 	}
 	for _, requiredFragment := range requiredFragments {
 		if !strings.Contains(assembledScript, requiredFragment) {

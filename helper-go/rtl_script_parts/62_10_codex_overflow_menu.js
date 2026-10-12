@@ -25,19 +25,13 @@
     updateCodexPendingApprovalRefreshTimer();
     const pendingApprovalTitleSet = new Set(latestPendingApprovalTitles.map(compactText));
     const pendingArchiveConversationIds = pendingCodexArchiveConversationIdSet();
-    const sortedOverflowConversations = [...overflowConversations].sort((leftConversation, rightConversation) =>
-      Number(codexConversationNeedsApproval(rightConversation, pendingApprovalTitleSet)) -
-        Number(codexConversationNeedsApproval(leftConversation, pendingApprovalTitleSet)) ||
-      Number(unreadConversationIds.has(rightConversation.id)) -
-        Number(unreadConversationIds.has(leftConversation.id))
-    );
-    sortedOverflowConversations.forEach((conversation) => {
+    overflowConversations.forEach((conversation) => {
       const itemRow = document.createElement("div");
       itemRow.className = CODEX_CHAT_OVERFLOW_ITEM_CLASS_NAME;
       const itemButton = document.createElement("button");
       const displayTitle = conversation.title;
       itemButton.type = "button";
-      itemButton.title = displayTitle === conversation.title ? displayTitle : displayTitle + " (" + conversation.title + ")";
+      itemButton.title = codexConversationLastReplyTooltip(conversation);
       itemButton.textContent = displayTitle;
       setCodexButtonPendingApproval(itemButton, codexConversationNeedsApproval(conversation, pendingApprovalTitleSet));
       setCodexButtonUnread(itemButton, unreadConversationIds.has(conversation.id));

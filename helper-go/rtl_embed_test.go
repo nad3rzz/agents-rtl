@@ -8,8 +8,8 @@ import (
 )
 
 const expectedRTLScriptPartCount = 83
-const expectedRTLScriptByteLength = 234537
-const expectedRTLScriptSHA256 = "66bef806784607bfc535ecb50f00836cea36b6cb5cd3cf1672868cb928dce101"
+const expectedRTLScriptByteLength = 235518
+const expectedRTLScriptSHA256 = "1253cb0a842434a80381743615402eddf642f4a70e9163791a06c5a8e3b5f677"
 
 var expectedRTLScriptPartNames = []string{
 	"00_00_prelude_start.js",
@@ -168,6 +168,40 @@ func TestRTLScriptIncludesAutomaticPlainTextDirectionAndAddToChatHighlight(t *te
 	for _, requiredFragment := range requiredFragments {
 		if !strings.Contains(assembledScript, requiredFragment) {
 			t.Fatalf("assembled RTL script is missing %q", requiredFragment)
+		}
+	}
+}
+
+func TestRTLScriptAppliesOneDirectionToEachTableBlock(t *testing.T) {
+	assembledScript := mustAssembleRTLScript()
+	requiredFragments := []string{
+		`if (element.hasAttribute(TABLE_WRAPPER_ATTRIBUTE_NAME)) return true;`,
+		`if (element.closest("table")) return true;`,
+		`const findFirstRealTableHeader = (tableElement) =>`,
+		`const tableDirection = containsArabicCharacters(firstRealHeaderElement.textContent) ? "rtl" : "ltr";`,
+		`setManagedTextDirection(tableContainerElement, tableDirection);`,
+		`applyTableInlineTextDirection(tableElement);`,
+		`applyChatTableDirection(antigravityRoot);`,
+		`applyChatTableDirection(document);`,
+		`applyChatTableDirection(nativeChatPanel);`,
+		`direction:inherit!important;text-align:start!important;unicode-bidi:isolate!important`,
+		`border-inline-start:1px solid`,
+	}
+	for _, requiredFragment := range requiredFragments {
+		if !strings.Contains(assembledScript, requiredFragment) {
+			t.Fatalf("assembled RTL script is missing %q", requiredFragment)
+		}
+	}
+
+	forbiddenFragments := []string{
+		`setManagedTextDirection(tableElement, "ltr")`,
+		`cellElement.tagName === "TH"`,
+		`td[dir='rtl']`,
+		`td[dir='ltr']`,
+	}
+	for _, forbiddenFragment := range forbiddenFragments {
+		if strings.Contains(assembledScript, forbiddenFragment) {
+			t.Fatalf("assembled RTL script contains forbidden per-cell behavior %q", forbiddenFragment)
 		}
 	}
 }

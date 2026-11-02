@@ -9,11 +9,11 @@
           document.querySelector('[class*="react-scroll-to-bottom"]') ||
           document.querySelector(".thread-scroll-container");
         if (webviewChatScope) {
+          applyChatTableDirection(webviewChatScope);
           [...webviewChatScope.querySelectorAll(WEBVIEW_CHAT_TEXT_SELECTOR)].forEach(applyTextDirection);
-          applyWebviewTableDirection(webviewChatScope);
         } else if (!getNativeChatPanel() && !isWorkbenchDocument()) {
+          applyChatTableDirection(document.body);
           [...document.body.querySelectorAll(WEBVIEW_CHAT_TEXT_SELECTOR)].forEach(applyTextDirection);
-          applyWebviewTableDirection(document.body);
         }
         [...document.body.querySelectorAll(PERMISSION_PROMPT_TEXT_SELECTOR)].forEach(applyTextDirection);
         applyCodexResponseAnnotationTextDirection();
@@ -21,6 +21,7 @@
       }
       const nativeChatPanel = getNativeChatPanel();
       if (nativeChatPanel) {
+        applyChatTableDirection(nativeChatPanel);
         [...nativeChatPanel.querySelectorAll(NATIVE_CHAT_TEXT_SELECTOR)].forEach(applyTextDirection);
         applyNativeVscodeComposerDirection();
       }

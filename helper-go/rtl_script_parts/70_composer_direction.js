@@ -1,12 +1,14 @@
   const applyAntigravityNativeTextDirection = () => {
     const antigravityRoot = getAntigravityConversation() || getAntigravityAgentPanel();
     if (!antigravityRoot) return;
+    applyChatTableDirection(antigravityRoot);
     [...new Set([...antigravityRoot.querySelectorAll(ANTIGRAVITY_CHAT_TEXT_SELECTOR)])]
       .filter(shouldManageAntigravityTextElement)
       .forEach(applyTextDirection);
   };
   const applyGeminiTextDirection = () => {
     if (!isGeminiCodeAssistDocument()) return;
+    applyChatTableDirection(document);
     [...new Set([...document.querySelectorAll(GEMINI_CHAT_TEXT_SELECTOR)])]
       .filter(shouldManageGeminiTextElement)
       .forEach(applyTextDirection);

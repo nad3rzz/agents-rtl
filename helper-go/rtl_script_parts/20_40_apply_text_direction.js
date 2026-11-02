@@ -1,6 +1,8 @@
   const isCodeLikeElement = (element) => element.closest(CODE_LIKE_SELECTOR);
   const shouldSkipElement = (element) => {
     if (!element.textContent.trim()) return true;
+    if (element.hasAttribute(TABLE_WRAPPER_ATTRIBUTE_NAME)) return true;
+    if (element.closest("table")) return true;
     if (element.matches(PLAIN_TEXT_CODE_BLOCK_SELECTOR)) {
       return !isPlainTextCodeBlock(element);
     }

@@ -1,5 +1,9 @@
 # 📝 Changelog
 
+## 🚀 0.0.87 - 2026-11-01
+
+- ↔️ Consistent RTL tables.
+
 ## 🚀 0.0.86 - 2026-10-12
 
 - 🕒 Smarter recent chat tabs.

@@ -48,7 +48,7 @@
     }
     return "python3 " + quotePosixShellArgument(scriptPath) +
       " clean --session " + quotePosixShellArgument(conversation.path) +
-      " --apply --allow-open-session";
+      " --apply";
   };
   const createCodexConversationPathButton = (conversation) => {
     const pathButton = document.createElement("button");

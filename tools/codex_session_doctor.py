@@ -8,7 +8,6 @@ import os
 import re
 import shutil
 import subprocess
-import sys
 import time
 from pathlib import Path
 
@@ -42,18 +41,6 @@ BACKUP_SUFFIX_MARKERS = [
     ".strip-huge-outputs-bak-",
     ".doctor-bak-",
 ]
-
-
-def read_ascii_yes_confirmation(prompt):
-    stdin_buffer = getattr(sys.stdin, "buffer", None)
-    if stdin_buffer is None:
-        raise RuntimeError("Interactive confirmation requires a binary stdin buffer.")
-    sys.stdout.write(prompt)
-    sys.stdout.flush()
-    answer_bytes = stdin_buffer.readline()
-    if answer_bytes == b"":
-        raise SystemExit("Aborted: confirmation input ended before an answer was received.")
-    return answer_bytes.strip().lower() in (b"y", b"yes")
 
 
 def expand_path(path_text):
@@ -318,6 +305,19 @@ def get_open_session_processes(path):
     return True, stdout
 
 
+def require_session_files_closed_for_write(paths, operation_name):
+    open_errors = []
+    for path in paths:
+        is_open, open_process_output = get_open_session_processes(path)
+        if is_open:
+            open_errors.append(f"{path}\n{open_process_output}")
+    if open_errors:
+        raise SystemExit(
+            f"Some target session files are open. Close Codex/VSCode/Antigravity before {operation_name}.\n\n"
+            + "\n\n".join(open_errors)
+        )
+
+
 def remove_images_from_structure(value, stats):
     if isinstance(value, list):
         cleaned = []
@@ -508,7 +508,7 @@ def print_tool_search_repair_plan(path, plan):
         )
 
 
-def repair_tool_search_session(path, apply_changes, allow_open_session):
+def repair_tool_search_session(path, apply_changes):
     plan = calculate_tool_search_repair_plan(path)
 
     if not apply_changes:
@@ -523,14 +523,7 @@ def repair_tool_search_session(path, apply_changes, allow_open_session):
         print("No corrupt tool_search records found. No files were changed.")
         return plan
 
-    is_open, open_process_output = get_open_session_processes(path)
-    if is_open and not allow_open_session:
-        raise SystemExit(
-            "Target session file is open. Close Codex/VSCode/Antigravity before repair.\n"
-            + open_process_output
-        )
-    if is_open:
-        print("open_session_override: yes")
+    require_session_files_closed_for_write([path], "repair")
 
     removed_line_numbers = {removal["line"] for removal in plan["removals"]}
     backup = path + ".doctor-tool-search-bak-" + time.strftime("%Y%m%d-%H%M%S")
@@ -543,6 +536,7 @@ def repair_tool_search_session(path, apply_changes, allow_open_session):
             write_obj.write(line)
 
     validate_jsonl(tmp)
+    require_session_files_closed_for_write([path], "repair")
     shutil.copy2(path, backup)
     os.replace(tmp, path)
 
@@ -586,7 +580,7 @@ def print_clean_plan(path, stats, original_bytes, cleaned_bytes):
         print(f"{key}: {stats[key]}")
 
 
-def clean_session(path, apply_changes, allow_open_session):
+def clean_session(path, apply_changes):
     stats, original_bytes, cleaned_bytes = calculate_clean_plan(path)
 
     if not apply_changes:
@@ -595,14 +589,7 @@ def clean_session(path, apply_changes, allow_open_session):
         print("\nNo files were changed. Re-run with --apply to write changes.")
         return
 
-    is_open, open_process_output = get_open_session_processes(path)
-    if is_open and not allow_open_session:
-        raise SystemExit(
-            "Target session file is open. Close Codex/VSCode/Antigravity before clean.\n"
-            + open_process_output
-        )
-    if is_open:
-        print("open_session_override: yes")
+    require_session_files_closed_for_write([path], "clean")
 
     backup = path + ".doctor-bak-" + time.strftime("%Y%m%d-%H%M%S")
     tmp = path + ".doctor-tmp"
@@ -614,6 +601,7 @@ def clean_session(path, apply_changes, allow_open_session):
             write_obj.write(json.dumps(obj, ensure_ascii=False) + "\n")
 
     validate_jsonl(tmp)
+    require_session_files_closed_for_write([path], "clean")
     shutil.copy2(path, backup)
     os.replace(tmp, path)
 
@@ -722,23 +710,7 @@ def command_report(args):
 def command_clean(args):
     paths = choose_sessions(args.session, args.all, args.root)
     if args.apply:
-        open_errors = []
-        for path in paths:
-            is_open, open_process_output = get_open_session_processes(path)
-            if is_open:
-                open_errors.append(f"{path}\n{open_process_output}")
-        if open_errors:
-            if not args.allow_open_session:
-                raise SystemExit(
-                    "Some target session files are open. Close Codex/VSCode/Antigravity before clean.\n\n"
-                    + "\n\n".join(open_errors)
-                )
-            print("WARNING: some target session files are open.\n")
-            print("\n\n".join(open_errors))
-            if not sys.stdin.isatty():
-                raise SystemExit("Refusing open-session clean without an interactive y/N confirmation.")
-            if not read_ascii_yes_confirmation("\nClean open session files anyway? [y/N]: "):
-                raise SystemExit("Aborted.")
+        require_session_files_closed_for_write(paths, "clean")
 
     total_original_bytes = 0
     total_cleaned_bytes = 0
@@ -746,7 +718,7 @@ def command_clean(args):
 
     for path in paths:
         original_bytes = os.path.getsize(path)
-        clean_session(path, args.apply, args.allow_open_session)
+        clean_session(path, args.apply)
         total_original_bytes += original_bytes
         if os.path.exists(path):
             total_cleaned_bytes += os.path.getsize(path) if args.apply else calculate_clean_plan(path)[2]
@@ -765,23 +737,7 @@ def command_clean(args):
 def command_repair_tool_search(args):
     paths = choose_sessions(args.session, args.all, args.root)
     if args.apply:
-        open_errors = []
-        for path in paths:
-            is_open, open_process_output = get_open_session_processes(path)
-            if is_open:
-                open_errors.append(f"{path}\n{open_process_output}")
-        if open_errors:
-            if not args.allow_open_session:
-                raise SystemExit(
-                    "Some target session files are open. Close Codex/VSCode/Antigravity before repair.\n\n"
-                    + "\n\n".join(open_errors)
-                )
-            print("WARNING: some target session files are open.\n")
-            print("\n\n".join(open_errors))
-            if not sys.stdin.isatty():
-                raise SystemExit("Refusing open-session repair without an interactive y/N confirmation.")
-            if not read_ascii_yes_confirmation("\nRepair open session files anyway? [y/N]: "):
-                raise SystemExit("Aborted.")
+        require_session_files_closed_for_write(paths, "repair")
 
     total_original_bytes = 0
     total_repaired_bytes = 0
@@ -789,7 +745,7 @@ def command_repair_tool_search(args):
 
     for path in paths:
         original_bytes = os.path.getsize(path)
-        plan = repair_tool_search_session(path, args.apply, args.allow_open_session)
+        plan = repair_tool_search_session(path, args.apply)
         total_original_bytes += original_bytes
         if os.path.exists(path):
             total_repaired_bytes += os.path.getsize(path) if args.apply else plan["repaired_bytes"]
@@ -902,13 +858,11 @@ def build_parser():
     clean = subparsers.add_parser("clean")
     add_session_selection_arguments(clean)
     clean.add_argument("--apply", action="store_true")
-    clean.add_argument("--allow-open-session", action="store_true")
     clean.set_defaults(func=command_clean)
 
     repair_tool_search = subparsers.add_parser("repair-tool-search")
     add_session_selection_arguments(repair_tool_search)
     repair_tool_search.add_argument("--apply", action="store_true")
-    repair_tool_search.add_argument("--allow-open-session", action="store_true")
     repair_tool_search.set_defaults(func=command_repair_tool_search)
 
     list_cmd = subparsers.add_parser("list")

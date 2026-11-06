@@ -42,7 +42,7 @@ Notes:
 - `repair-tool-search` removes corrupt `tool_search_call` records with invalid long argument property names and their failed parser outputs.
 - `clean` is dry-run by default.
 - `repair-tool-search` is dry-run by default.
-- `--apply` refuses to clean/repair an open session file when `lsof` is available.
+- `--apply` always refuses to clean/repair an open session file; there is no override.
 - Backups are written next to the original session as `.doctor-bak-*`.
 
 ## antigravity_native_network_monitor.py

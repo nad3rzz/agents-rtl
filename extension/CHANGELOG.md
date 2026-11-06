@@ -1,5 +1,9 @@
 # 📝 Changelog
 
+## 🚀 0.0.88 - 2026-11-06
+
+- 🛡️ Block open-session maintenance.
+
 ## 🚀 0.0.87 - 2026-11-01
 
 - ↔️ Consistent RTL tables.

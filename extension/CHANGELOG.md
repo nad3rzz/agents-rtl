@@ -1,5 +1,13 @@
 # 📝 Changelog
 
+## 🚀 0.0.90 - 2026-11-09
+
+- ↔️ Match Native table-wide RTL alignment for mixed emoji, numeric, Arabic, and English cells.
+
+## 🚀 0.0.89 - 2026-11-09
+
+- ↔️ Native-style automatic direction and intrinsic sizing for mixed-language tables.
+
 ## 🚀 0.0.88 - 2026-11-06
 
 - 🛡️ Block open-session maintenance.

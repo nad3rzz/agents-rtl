@@ -8,8 +8,8 @@ import (
 )
 
 const expectedRTLScriptPartCount = 83
-const expectedRTLScriptByteLength = 235497
-const expectedRTLScriptSHA256 = "1b51aa4b5c665c19367001e68e0fc88d22873b5a2be5634c8aa7a88725740ec8"
+const expectedRTLScriptByteLength = 236190
+const expectedRTLScriptSHA256 = "cae17dc4b04f3587285a2c41b49d253793e1f84ea052fd73ad2edef829e91f6d"
 
 var expectedRTLScriptPartNames = []string{
 	"00_00_prelude_start.js",
@@ -172,19 +172,24 @@ func TestRTLScriptIncludesAutomaticPlainTextDirectionAndAddToChatHighlight(t *te
 	}
 }
 
-func TestRTLScriptAppliesOneDirectionToEachTableBlock(t *testing.T) {
+func TestRTLScriptAppliesAutomaticDirectionToEachTableCell(t *testing.T) {
 	assembledScript := mustAssembleRTLScript()
 	requiredFragments := []string{
 		`if (element.hasAttribute(TABLE_WRAPPER_ATTRIBUTE_NAME)) return true;`,
 		`if (element.closest("table")) return true;`,
-		`const findFirstRealTableHeader = (tableElement) =>`,
-		`const tableDirection = containsArabicCharacters(firstRealHeaderElement.textContent) ? "rtl" : "ltr";`,
-		`setManagedTextDirection(tableContainerElement, tableDirection);`,
+		`const findTableCells = (tableElement) =>`,
+		`const hasRealTableCell = tableCellElements.some(`,
+		`const tableDirectionSourceElements =`,
+		`const tableDirection = containsArabicCharacters(tableDirectionSourceText)`,
+		`setManagedTextDirection(tableElement, tableDirection);`,
+		`tableCellElements.forEach((cellElement) => {`,
+		`setManagedTextDirection(cellElement, tableDirection);`,
 		`applyTableInlineTextDirection(tableElement);`,
 		`applyChatTableDirection(antigravityRoot);`,
 		`applyChatTableDirection(document);`,
 		`applyChatTableDirection(nativeChatPanel);`,
-		`direction:inherit!important;text-align:start!important;unicode-bidi:isolate!important`,
+		`width:auto!important;min-width:0!important;max-width:100%!important`,
+		`text-align:start!important;unicode-bidi:isolate!important`,
 		`border-inline-start:1px solid`,
 	}
 	for _, requiredFragment := range requiredFragments {
@@ -194,10 +199,11 @@ func TestRTLScriptAppliesOneDirectionToEachTableBlock(t *testing.T) {
 	}
 
 	forbiddenFragments := []string{
-		`setManagedTextDirection(tableElement, "ltr")`,
+		`const findFirstRealTableHeader = (tableElement) =>`,
+		`setManagedTextDirection(tableContainerElement`,
+		`setManagedTextDirection(cellElement, "auto")`,
+		`direction:inherit!important;text-align:start!important;unicode-bidi:isolate!important`,
 		`cellElement.tagName === "TH"`,
-		`td[dir='rtl']`,
-		`td[dir='ltr']`,
 	}
 	for _, forbiddenFragment := range forbiddenFragments {
 		if strings.Contains(assembledScript, forbiddenFragment) {

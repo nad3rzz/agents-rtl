@@ -42,6 +42,8 @@ BACKUP_SUFFIX_MARKERS = [
     ".doctor-bak-",
 ]
 
+REMOVED_IMAGE_VALUE = object()
+
 
 def expand_path(path_text):
     return str(Path(path_text).expanduser())
@@ -332,14 +334,20 @@ def remove_images_from_structure(value, stats):
                 stats["removed_image_strings"] += 1
                 continue
             cleaned_item = remove_images_from_structure(item, stats)
-            if cleaned_item is not None:
+            if cleaned_item is not REMOVED_IMAGE_VALUE:
                 cleaned.append(cleaned_item)
         return cleaned
 
     if isinstance(value, dict):
         if value.get("type") == "input_image":
             stats["removed_input_image_dicts"] += 1
-            return None
+            return REMOVED_IMAGE_VALUE
+
+        if value.get("type") == "image":
+            if "image_url" not in value:
+                raise ValueError("Image item is missing image_url; recover the session from a backup before cleaning.")
+            stats["removed_image_url_fields"] += 1
+            return REMOVED_IMAGE_VALUE
 
         cleaned = {}
         for key, child in value.items():
@@ -356,7 +364,7 @@ def remove_images_from_structure(value, stats):
                 continue
 
             cleaned_child = remove_images_from_structure(child, stats)
-            if cleaned_child is not None:
+            if cleaned_child is not REMOVED_IMAGE_VALUE:
                 cleaned[key] = cleaned_child
 
         return cleaned

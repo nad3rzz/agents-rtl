@@ -44,6 +44,18 @@ Notes:
 - `repair-tool-search` is dry-run by default.
 - `--apply` always refuses to clean/repair an open session file; there is no override.
 - Backups are written next to the original session as `.doctor-bak-*`.
+- Cleanup preserves JSON `null` values and removes complete image items. Already broken image items require recovery first.
+
+### Recover Old Doctor Changes
+
+`codex_session_recover_clean.py` restores original records from explicit backups,
+retains newer records, and rejects differences not explained by the old cleaner.
+Supply backups oldest first. Dry-run is the default; `--apply` requires all Codex
+clients stopped and saves the current file as `.restore-bak-*` before replacement.
+
+```bash
+python3 tools/codex_session_recover_clean.py --session /path/session.jsonl --backup /path/oldest-backup --backup /path/newest-backup
+```
 
 ## antigravity_native_network_monitor.py
 

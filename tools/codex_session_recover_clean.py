@@ -16,6 +16,7 @@ from pathlib import Path
 from tqdm import tqdm
 
 from codex_session_doctor import DATA_IMAGE_RX, require_session_files_closed_for_write
+from codex_session_lineage import require_unlinked_session
 
 
 def reproduce_legacy_cleaning(value):
@@ -120,6 +121,7 @@ def reconstruct_records(paths, output=None, show_progress=True):
 
 
 def recover_session(session, backups, apply_changes=False):
+    require_unlinked_session(session)
     paths = [*backups, session]
     if not backups or len(set(paths)) != len(paths):
         raise ValueError("Provide distinct backup files and a distinct target session")

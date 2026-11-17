@@ -38,13 +38,43 @@ python3 tools/codex_session_doctor.py repair-tool-search --session /path/to/sess
 
 Notes:
 
-- `clean` removes image payloads only.
+- `clean` removes image payloads only from unreferenced tails. Shared history prefixes and metadata remain byte-for-byte unchanged; some images therefore remain intentionally.
 - `repair-tool-search` removes corrupt `tool_search_call` records with invalid long argument property names and their failed parser outputs.
 - `clean` is dry-run by default.
 - `repair-tool-search` is dry-run by default.
 - `--apply` always refuses to clean/repair an open session file; there is no override.
 - Backups are written next to the original session as `.doctor-bak-*`.
 - Cleanup preserves JSON `null` values and removes complete image items. Already broken image items require recovery first.
+- Cleanup validates all history links before writing. Broken cutoffs must be repaired first; stopping clients alone does not repair them.
+- No-op cleanup does not rewrite JSON or create a backup. Linux writes require all Codex clients stopped; do not restart them during maintenance.
+- Legacy restore, migration, tool-search removal and record recovery refuse linked/paginated rollouts.
+
+### Repair History Offsets
+
+Old cleaners changed byte offsets without updating `history_base`. This tool proves
+each replacement using contiguous ordinals and matching backup boundary records.
+It changes only the header offset, pads JSON whitespace to retain header length,
+and preserves every body byte, including newer messages. No backup is restored.
+
+```bash
+python3 tools/codex_session_repair_lineage.py --sessions-root ~/.codex/sessions
+# After reviewing the plan, close all Codex clients and keep them closed:
+python3 tools/codex_session_repair_lineage.py --sessions-root ~/.codex/sessions --apply
+```
+
+Each file replacement is atomic, backed up as `.lineage-repair-bak-*`, and verified.
+Directory locks serialize these tools; Codex itself does not honor those locks,
+so clients must stay closed. An interrupted batch can be rerun: completed repairs
+are no-ops and fixed header lengths preserve the remaining source offsets.
+Unknown records, missing evidence or concurrent changes abort explicitly.
+Keep all backups until the conversations open correctly in Codex.
+
+Regression tests: `python3 -B tools/test_codex_session_lineage.py`.
+Optional real-copy rehearsal (writes only disposable test copies):
+
+```bash
+python3 -B tools/test_codex_session_lineage.py --real-sessions-root ~/.codex/sessions --temporary-parent ./nosync
+```
 
 ### Recover Old Doctor Changes
 

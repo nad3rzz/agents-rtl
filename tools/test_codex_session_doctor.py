@@ -7,6 +7,7 @@ from codex_session_doctor import remove_images_from_structure
 def build_empty_clean_stats():
     return {
         "removed_input_image_items": 0,
+        "removed_mcp_image_items": 0,
         "removed_image_text_tags": 0,
         "removed_image_strings": 0,
         "removed_input_image_dicts": 0,
@@ -128,6 +129,49 @@ def test_null_and_removed_image_are_distinct():
     ) == [None, {"value": None}]
 
 
+def test_mcp_image_cleanup_preserves_tool_result_and_text():
+    record = {
+        "type": "event_msg",
+        "payload": {
+            "type": "item_completed",
+            "item": {
+                "type": "McpToolCall",
+                "id": "tool-1",
+                "result": {
+                    "isError": False,
+                    "structuredContent": None,
+                    "content": [
+                        {"type": "text", "text": "screenshot result"},
+                        {"type": "image", "data": "AAAA", "mimeType": "image/png"},
+                    ],
+                },
+            },
+        },
+    }
+    original = deepcopy(record)
+    expected = deepcopy(record)
+    expected["payload"]["item"]["result"]["content"].pop()
+    stats = build_empty_clean_stats()
+    assert remove_images_from_structure(record, stats) == expected
+    assert record == original
+    assert stats["removed_mcp_image_items"] == 1
+    assert stats["removed_image_url_fields"] == 0
+
+
+def test_incomplete_mcp_images_fail_explicitly():
+    for invalid in (
+        {"type": "image", "data": "AAAA"},
+        {"type": "image", "data": "", "mimeType": "image/png"},
+        {"type": "image", "data": "AAAA", "mimeType": "text/plain"},
+    ):
+        try:
+            remove_images_from_structure(invalid, build_empty_clean_stats())
+        except ValueError as error:
+            assert "valid MCP data/mimeType" in str(error)
+        else:
+            raise AssertionError("An incomplete MCP image was accepted")
+
+
 def main():
     tests = (
         test_image_cleanup_preserves_json_null_values,
@@ -135,6 +179,8 @@ def main():
         test_completed_user_message_removes_whole_image_items,
         test_invalid_image_item_requires_recovery,
         test_null_and_removed_image_are_distinct,
+        test_mcp_image_cleanup_preserves_tool_result_and_text,
+        test_incomplete_mcp_images_fail_explicitly,
     )
     for test in tests:
         test()

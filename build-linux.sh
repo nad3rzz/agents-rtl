@@ -24,6 +24,9 @@ stage_and_package() {
 
   cp "$DIST_DIR/$helper_file_name" "$STAGING_DIR/bin/$helper_file_name"
   cp "$ROOT_DIR/tools/codex_session_doctor.py" "$STAGING_DIR/tools/codex_session_doctor.py"
+  cp "$ROOT_DIR/tools/codex_session_lineage.py" "$STAGING_DIR/tools/codex_session_lineage.py"
+  cp "$ROOT_DIR/tools/codex_session_storage.py" "$STAGING_DIR/tools/codex_session_storage.py"
+  cp "$ROOT_DIR/tools/codex_session_repair_lineage.py" "$STAGING_DIR/tools/codex_session_repair_lineage.py"
 
   cd "$STAGING_DIR"
   npx --yes @vscode/vsce package \

@@ -66,7 +66,7 @@ def test_apply_rejects_running_clients_without_writing():
         write_records(backup, [original])
         write_records(current, [reproduce_legacy_cleaning(original)])
         before = current.read_bytes()
-        with patch("codex_session_recover_clean.require_codex_stopped", side_effect=RuntimeError("Codex is running")):
+        with patch("codex_session_recover_clean.require_unlinked_session"), patch("codex_session_recover_clean.require_codex_stopped", side_effect=RuntimeError("Codex is running")):
             try:
                 recover_session(current, [backup], apply_changes=True)
             except RuntimeError as error:
@@ -84,7 +84,7 @@ def test_apply_saves_original_and_repeated_apply_is_noop():
         write_records(backup, [original])
         write_records(current, [reproduce_legacy_cleaning(original), make_record("later reply")])
         before = current.read_bytes()
-        with patch("codex_session_recover_clean.require_codex_stopped"):
+        with patch("codex_session_recover_clean.require_unlinked_session"), patch("codex_session_recover_clean.require_codex_stopped"):
             result = recover_session(current, [backup], apply_changes=True)
             assert Path(result["backup"]).read_bytes() == before
             assert json.loads(current.read_bytes().splitlines()[0]) == original

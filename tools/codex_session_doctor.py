@@ -7,11 +7,20 @@ import json
 import os
 import re
 import shutil
-import subprocess
 import time
+from contextlib import nullcontext
 from pathlib import Path
 
 from tqdm import tqdm
+
+from codex_session_lineage import (
+    inventory_signatures, protected_prefixes, read_inventory,
+    require_inventory_unchanged, require_unlinked_session, session_root,
+)
+from codex_session_storage import (
+    create_staged_file, file_signature, offline_session_lock, open_file_check,
+    replace_verified, require_unchanged,
+)
 
 
 DEFAULT_ROOTS = [
@@ -284,27 +293,15 @@ def print_row(row):
 
 def get_open_session_processes(path):
     try:
-        result = subprocess.run(
-            ["lsof", path],
-            check=False,
-            text=True,
-            capture_output=True,
-        )
-    except FileNotFoundError:
-        return True, "lsof is not installed; refusing to clean without an exact open-file check."
+        result = open_file_check(path)
+    except FileNotFoundError as error:
+        raise RuntimeError(f"Missing open-file check dependency: {error.filename}") from error
 
     stdout = result.stdout.strip()
     stderr = result.stderr.strip()
-    if result.returncode == 1 and not stdout:
-        return False, stderr
-    if result.returncode not in (0, 1):
-        return True, stderr or stdout
-
-    lines = stdout.splitlines()
-    if len(lines) <= 1:
-        return False, stderr
-
-    return True, stdout
+    if result.returncode == 1 and not stdout and not stderr:
+        return False, ""
+    return True, stdout + "\n" + stderr + f"\nlsof exit status: {result.returncode}"
 
 
 def require_session_files_closed_for_write(paths, operation_name):
@@ -344,9 +341,15 @@ def remove_images_from_structure(value, stats):
             return REMOVED_IMAGE_VALUE
 
         if value.get("type") == "image":
-            if "image_url" not in value:
-                raise ValueError("Image item is missing image_url; recover the session from a backup before cleaning.")
-            stats["removed_image_url_fields"] += 1
+            if "image_url" in value:
+                stats["removed_image_url_fields"] += 1
+            elif (
+                isinstance(value.get("data"), str) and value["data"]
+                and isinstance(value.get("mimeType"), str) and value["mimeType"].startswith("image/")
+            ):
+                stats["removed_mcp_image_items"] += 1
+            else:
+                raise ValueError("Image item is missing image_url and valid MCP data/mimeType; repair the incomplete item before cleaning.")
             return REMOVED_IMAGE_VALUE
 
         cleaned = {}
@@ -517,6 +520,7 @@ def print_tool_search_repair_plan(path, plan):
 
 
 def repair_tool_search_session(path, apply_changes):
+    require_unlinked_session(path)
     plan = calculate_tool_search_repair_plan(path)
 
     if not apply_changes:
@@ -555,9 +559,10 @@ def repair_tool_search_session(path, apply_changes):
     return plan
 
 
-def calculate_clean_plan(path):
-    stats = {
+def empty_clean_stats():
+    return {
         "removed_input_image_items": 0,
+        "removed_mcp_image_items": 0,
         "removed_image_text_tags": 0,
         "removed_image_strings": 0,
         "removed_input_image_dicts": 0,
@@ -565,16 +570,47 @@ def calculate_clean_plan(path):
         "removed_image_url_fields": 0,
         "removed_inline_data_images": 0,
     }
-    original_bytes = os.path.getsize(path)
+
+
+def process_clean_records(path, protected_bytes, destination=None):
+    stats = empty_clean_stats()
+    signature = file_signature(path)
+    original_bytes = signature[2]
     cleaned_bytes = 0
-
-    for _, obj in parse_jsonl(path):
-        if obj is None:
-            continue
-        obj = remove_images_from_structure(obj, stats)
-        cleaned_bytes += len(json.dumps(obj, ensure_ascii=False).encode()) + 1
-
+    source_offset = 0
+    with open(path, "rb") as source, tqdm(total=original_bytes, desc="Checking cleanup", unit="B", unit_scale=True, mininterval=1) as progress:
+        for line_number, raw in enumerate(source, 1):
+            if not raw.endswith(b"\n"):
+                raise ValueError(f"Incomplete JSONL record: {path}:{line_number}")
+            record = json.loads(raw)
+            if not isinstance(record, dict):
+                raise ValueError(f"Invalid session record: {path}:{line_number}")
+            output = raw
+            if source_offset < protected_bytes:
+                if source_offset + len(raw) > protected_bytes:
+                    raise ValueError(f"Protected prefix splits a record: {path}")
+            else:
+                cleaned = remove_images_from_structure(record, stats)
+                if cleaned != record:
+                    output = (json.dumps(cleaned, ensure_ascii=False) + "\n").encode("utf-8")
+            if destination is not None:
+                destination.write(output)
+            source_offset += len(raw)
+            cleaned_bytes += len(output)
+            progress.update(len(raw))
+    if protected_bytes > source_offset:
+        raise ValueError(f"Protected prefix exceeds file size: {path}")
+    require_unchanged({Path(path): signature})
     return stats, original_bytes, cleaned_bytes
+
+
+def calculate_clean_plan(path):
+    path = Path(path).absolute()
+    inventory = read_inventory(session_root(path))
+    prefix = protected_prefixes(inventory)[path]
+    result = process_clean_records(path, prefix)
+    require_unchanged(inventory_signatures(inventory))
+    return result
 
 
 def print_clean_plan(path, stats, original_bytes, cleaned_bytes):
@@ -588,35 +624,57 @@ def print_clean_plan(path, stats, original_bytes, cleaned_bytes):
         print(f"{key}: {stats[key]}")
 
 
+def clean_sessions(paths, apply_changes):
+    paths = [Path(path).absolute() for path in paths]
+    roots = sorted({session_root(path) for path in paths})
+    context = offline_session_lock(roots) if apply_changes else nullcontext()
+    results = []
+    with context:
+        inventories = {root: read_inventory(root) for root in roots}
+        prefixes = {}
+        signatures = {}
+        for inventory in inventories.values():
+            prefixes.update(protected_prefixes(inventory))
+            signatures.update(inventory_signatures(inventory))
+        # Validate every selected file before the first replacement.
+        plans = {}
+        for path in tqdm(paths, total=len(paths), desc="Planning cleanup", unit="session"):
+            plans[path] = process_clean_records(path, prefixes[path])
+        require_unchanged(signatures)
+        for path in tqdm(paths, total=len(paths), desc="Applying cleanup" if apply_changes else "Reporting cleanup", unit="session"):
+            for root, inventory in inventories.items():
+                require_inventory_unchanged(root, inventory, signatures)
+            stats, original_bytes, cleaned_bytes = plans[path]
+            print("mode: apply" if apply_changes else "mode: dry-run")
+            print_clean_plan(path, stats, original_bytes, cleaned_bytes)
+            print(f"protected_prefix_bytes: {prefixes[path]}")
+            if apply_changes and any(stats.values()):
+                temporary = None
+                try:
+                    with create_staged_file(path) as output:
+                        temporary = Path(output.name)
+                        staged_plan = process_clean_records(path, prefixes[path], output)
+                        output.flush()
+                        os.fsync(output.fileno())
+                    if staged_plan != plans[path]:
+                        raise RuntimeError(f"Cleanup plan changed: {path}")
+                    for root, inventory in inventories.items():
+                        require_inventory_unchanged(root, inventory, signatures)
+                    backup = replace_verified(path, temporary, signatures, "doctor")
+                    signatures[path] = file_signature(path)
+                    print(f"backup: {backup}")
+                finally:
+                    if temporary is not None and temporary.exists():
+                        temporary.unlink()
+            results.append((original_bytes, cleaned_bytes))
+        if apply_changes:
+            for root in roots:
+                protected_prefixes(read_inventory(root))
+    return results
+
+
 def clean_session(path, apply_changes):
-    stats, original_bytes, cleaned_bytes = calculate_clean_plan(path)
-
-    if not apply_changes:
-        print("mode: dry-run")
-        print_clean_plan(path, stats, original_bytes, cleaned_bytes)
-        print("\nNo files were changed. Re-run with --apply to write changes.")
-        return
-
-    require_session_files_closed_for_write([path], "clean")
-
-    backup = path + ".doctor-bak-" + time.strftime("%Y%m%d-%H%M%S")
-    tmp = path + ".doctor-tmp"
-
-    with open(path, encoding="utf-8") as read_obj, open(tmp, "w", encoding="utf-8") as write_obj:
-        for line in read_obj:
-            obj = json.loads(line)
-            obj = remove_images_from_structure(obj, stats={key: 0 for key in stats})
-            write_obj.write(json.dumps(obj, ensure_ascii=False) + "\n")
-
-    validate_jsonl(tmp)
-    require_session_files_closed_for_write([path], "clean")
-    shutil.copy2(path, backup)
-    os.replace(tmp, path)
-
-    print("mode: apply")
-    print_clean_plan(path, stats, original_bytes, cleaned_bytes)
-    print(f"backup: {backup}")
-    print(f"actual_clean_mb: {os.path.getsize(path) / 1048576:.3f}")
+    return clean_sessions([path], apply_changes)[0]
 
 
 def list_sessions(root_args):
@@ -659,6 +717,8 @@ def restore_latest_backup(session_arg):
         raise SystemExit(f"Cannot infer target session from backup: {backup}")
 
     target = backup[:marker_index + len(".jsonl")]
+    require_unlinked_session(target)
+    require_session_files_closed_for_write([target], "restore")
     shutil.copy2(backup, target)
     print(f"restored: {target}")
     print(f"from: {backup}")
@@ -717,24 +777,12 @@ def command_report(args):
 
 def command_clean(args):
     paths = choose_sessions(args.session, args.all, args.root)
-    if args.apply:
-        require_session_files_closed_for_write(paths, "clean")
-
-    total_original_bytes = 0
-    total_cleaned_bytes = 0
-    cleaned_sessions = 0
-
-    for path in paths:
-        original_bytes = os.path.getsize(path)
-        clean_session(path, args.apply)
-        total_original_bytes += original_bytes
-        if os.path.exists(path):
-            total_cleaned_bytes += os.path.getsize(path) if args.apply else calculate_clean_plan(path)[2]
-        cleaned_sessions += 1
-        print()
+    results = clean_sessions(paths, args.apply)
+    total_original_bytes = sum(original for original, _ in results)
+    total_cleaned_bytes = sum(cleaned for _, cleaned in results)
 
     print("summary:")
-    print(f"sessions: {cleaned_sessions}")
+    print(f"sessions: {len(results)}")
     print(f"original_mb: {total_original_bytes / 1048576:.3f}")
     clean_label = "actual_clean_mb" if args.apply else "estimated_clean_mb"
     saved_label = "actual_saved_mb" if args.apply else "estimated_saved_mb"
@@ -744,6 +792,8 @@ def command_clean(args):
 
 def command_repair_tool_search(args):
     paths = choose_sessions(args.session, args.all, args.root)
+    for path in paths:
+        require_unlinked_session(path)
     if args.apply:
         require_session_files_closed_for_write(paths, "repair")
 

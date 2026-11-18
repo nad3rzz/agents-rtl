@@ -5,6 +5,7 @@ import os
 import re
 import shutil
 from codex_session_lineage import require_unlinked_session
+from codex_session_projection import require_no_projection_rewrite
 import sqlite3
 import subprocess
 import sys
@@ -412,6 +413,7 @@ def apply_plan(plan, allow_open_programs):
     for chosen_session in [*plan["copy_new_sessions"], *(action["session"] for action in plan["replace_sessions"])]:
         require_unlinked_session(chosen_session["path"])
         if os.path.exists(chosen_session["dest_path"]):
+            require_no_projection_rewrite([chosen_session["dest_path"]])
             require_unlinked_session(chosen_session["dest_path"])
     assert_no_open_programs(allow_open_programs)
     backup_root = os.path.join(

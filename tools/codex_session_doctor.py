@@ -21,6 +21,7 @@ from codex_session_storage import (
     create_staged_file, file_signature, offline_session_lock, open_file_check,
     replace_verified, require_unchanged,
 )
+from codex_session_projection import require_no_projection_rewrite
 
 
 DEFAULT_ROOTS = [
@@ -520,6 +521,8 @@ def print_tool_search_repair_plan(path, plan):
 
 
 def repair_tool_search_session(path, apply_changes):
+    if apply_changes:
+        require_no_projection_rewrite([path])
     require_unlinked_session(path)
     plan = calculate_tool_search_repair_plan(path)
 
@@ -630,6 +633,8 @@ def clean_sessions(paths, apply_changes):
     context = offline_session_lock(roots) if apply_changes else nullcontext()
     results = []
     with context:
+        if apply_changes:
+            require_no_projection_rewrite(paths)
         inventories = {root: read_inventory(root) for root in roots}
         prefixes = {}
         signatures = {}
@@ -717,6 +722,7 @@ def restore_latest_backup(session_arg):
         raise SystemExit(f"Cannot infer target session from backup: {backup}")
 
     target = backup[:marker_index + len(".jsonl")]
+    require_no_projection_rewrite([target])
     require_unlinked_session(target)
     require_session_files_closed_for_write([target], "restore")
     shutil.copy2(backup, target)
@@ -792,6 +798,8 @@ def command_clean(args):
 
 def command_repair_tool_search(args):
     paths = choose_sessions(args.session, args.all, args.root)
+    if args.apply:
+        require_no_projection_rewrite(paths)
     for path in paths:
         require_unlinked_session(path)
     if args.apply:

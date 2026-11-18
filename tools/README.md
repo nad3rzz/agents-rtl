@@ -38,7 +38,8 @@ python3 tools/codex_session_doctor.py repair-tool-search --session /path/to/sess
 
 Notes:
 
-- `clean` removes image payloads only from unreferenced tails. Shared history prefixes and metadata remain byte-for-byte unchanged; some images therefore remain intentionally.
+- `clean --apply` refuses indexed rollouts. Tail-only cleanup is NOT safe when SQLite holds byte offsets. Projection-aware cleanup is not implemented.
+- For unindexed legacy files, `clean` removes image payloads only from unreferenced tails; shared prefixes and metadata remain unchanged.
 - `repair-tool-search` removes corrupt `tool_search_call` records with invalid long argument property names and their failed parser outputs.
 - `clean` is dry-run by default.
 - `repair-tool-search` is dry-run by default.
@@ -68,6 +69,46 @@ so clients must stay closed. An interrupted batch can be rerun: completed repair
 are no-ops and fixed header lengths preserve the remaining source offsets.
 Unknown records, missing evidence or concurrent changes abort explicitly.
 Keep all backups until the conversations open correctly in Codex.
+
+### Repair SQLite Projection Offsets
+
+Fixing `history_base` alone does not fix `thread_history_1.sqlite`. A cleaner can
+leave `next_rollout_byte_offset` and turn boundaries pointing into the old bytes,
+causing `durable rollout shrank before projection` and an apparently old chat.
+
+```bash
+python3 tools/codex_session_repair_projection.py --session /absolute/sessions/path/rollout-....jsonl
+# Close every Codex client, then run the same command with --apply.
+```
+
+This repairs the selected physical rollout and its ancestors in one SQLite
+transaction. It proves contiguous ordinals and matching turn identities, changes
+byte offsets only, and leaves next ordinals, item rows and JSONL files untouched.
+A verified full SQLite backup is stored in `CODEX_HOME/session_maintenance_backups/`.
+Interrupted transactions roll back; repeated successful application is a no-op.
+Reopen the conversation to let Codex project the newer records. Successful SQL
+verification is NOT sufficient: check the latest messages through native
+`thread/turns/list` after resume, then confirm the actual UI with the user.
+
+Tests: `python3 -B tools/test_codex_session_projection.py`.
+
+### Repair All Histories (Including Archives)
+
+```bash
+python3 tools/codex_session_repair_projection.py --all-home ~/.codex
+# Close every Codex client before applying:
+python3 tools/codex_session_repair_projection.py --all-home ~/.codex --apply
+```
+
+This repairs index byte offsets, not messages. Stale lineage headers require matching
+backup evidence and retain their exact byte length. Missing files, changed files,
+unknown schemas, and overlapping runs fail explicitly. The history database is
+backed up before writes; its offset updates commit in one transaction. Each header
+replacement is independently atomic and backed up. If interrupted after a header
+repair, that valid header remains; rerunning recomputes the remaining work.
+No backups are deleted. Reopen and check the native history before declaring recovery.
+
+Tests: `python3 -B tools/test_codex_session_history_repair.py`.
 
 Regression tests: `python3 -B tools/test_codex_session_lineage.py`.
 Optional real-copy rehearsal (writes only disposable test copies):

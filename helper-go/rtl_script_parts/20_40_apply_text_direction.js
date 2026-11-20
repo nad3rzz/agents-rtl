@@ -49,6 +49,7 @@
       applyPlainTextCodeBlockLineDirections(element);
       return;
     }
+    if (applyChatListElementDirection(element)) return;
     setAttributeIfChanged(element, "dir", containsArabicCharacters(element.textContent) ? "rtl" : "ltr");
     setStyleValueIfChanged(element, "unicodeBidi", "isolate");
     setStyleValueIfChanged(element, "textAlign", "start");

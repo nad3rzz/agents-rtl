@@ -10,6 +10,9 @@ Supports Linux and Windows x64.
 ## Features
 
 - Arabic RTL formatting for Codex and agent chat messages.
+- Mixed-language lists keep one marker side; item text retains its reading
+  order without wrapping or moving host-owned DOM nodes. Nested lists choose
+  their own direction, and turning RTL off restores prior presentation.
 - RTL-aware composer text in VS Code and Codex webviews.
 - Codex chat tabs for quickly switching between active workspace conversations.
 - Optional up/down scroll controls for long chats.

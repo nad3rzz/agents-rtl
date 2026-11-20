@@ -10,7 +10,7 @@
       "[" + PLAIN_TEXT_CODE_BLOCK_ATTRIBUTE_NAME + "] > code > span > span[dir='auto']{display:block!important;white-space:pre-wrap!important;unicode-bidi:plaintext!important}",
       "[" + PLAIN_TEXT_CODE_BLOCK_ATTRIBUTE_NAME + "] > code > span > span[dir='auto']:dir(rtl){direction:rtl!important;text-align:right!important}",
       "[" + PLAIN_TEXT_CODE_BLOCK_ATTRIBUTE_NAME + "] > code > span > span[dir='auto']:dir(ltr){direction:ltr!important;text-align:left!important}",
-      "[" + MANAGED_ATTRIBUTE_NAME + "][dir='rtl']:is(ol,ul),[" + MANAGED_ATTRIBUTE_NAME + "][dir='rtl'] :is(ol,ul){padding-inline-start:0!important;padding-inline-end:1.5rem!important}",
+      "[" + MANAGED_ATTRIBUTE_NAME + "][dir='rtl']:is(ol,ul){padding-inline-start:1.5rem!important;padding-inline-end:0!important}",
       "button[aria-label='Copy'],button[aria-label='Copy message'],button[aria-label='Good response'],button[aria-label='Bad response'],button[aria-label='Fork from this point']{opacity:1!important;visibility:visible!important}",
       "html[data-agents-rtl-active='1'] " + USER_MESSAGE_SELECTOR + "{background-color:rgba(126,87,194,.18)!important;border-radius:8px!important}",
       "html[data-agents-rtl-active='1'] " + USER_MESSAGE_INNER_BUBBLE_SELECTOR + "{background-color:transparent!important}",

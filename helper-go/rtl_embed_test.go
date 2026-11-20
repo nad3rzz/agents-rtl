@@ -7,9 +7,9 @@ import (
 	"testing"
 )
 
-const expectedRTLScriptPartCount = 83
-const expectedRTLScriptByteLength = 236190
-const expectedRTLScriptSHA256 = "cae17dc4b04f3587285a2c41b49d253793e1f84ea052fd73ad2edef829e91f6d"
+const expectedRTLScriptPartCount = 84
+const expectedRTLScriptByteLength = 238604
+const expectedRTLScriptSHA256 = "61d12a1b6f9c1ac83b23b05e68115c1ead4410e4ddc45164bc1add844218c339"
 
 var expectedRTLScriptPartNames = []string{
 	"00_00_prelude_start.js",
@@ -29,6 +29,7 @@ var expectedRTLScriptPartNames = []string{
 	"20_40_apply_text_direction.js",
 	"20_50_restore_text_direction.js",
 	"20_60_table_direction.js",
+	"20_65_list_direction.js",
 	"20_70_scrollable_element.js",
 	"30_00_native_scroll_find.js",
 	"30_10_antigravity_scroll_find.js",

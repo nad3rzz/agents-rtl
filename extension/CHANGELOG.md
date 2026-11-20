@@ -1,5 +1,16 @@
 # 📝 Changelog
 
+## 🚀 0.0.92 - 2026-11-18
+
+- 🛑 Disconnect the replaced runtime's observer after stop so old and new renderers cannot compete.
+
+## 🚀 0.0.91 - 2026-11-18
+
+- ↔️ Keep mixed Arabic/English lists on one marker side while retaining readable item text.
+- 🧩 Handle nested, numbered, loose, and task lists without restructuring host/React DOM.
+- 📐 Reserve marker space on the correct logical side, including narrow chat panels.
+- 🔄 Preserve the RTL enabled/disabled setting when replacing the runtime.
+
 ## 🚀 0.0.90 - 2026-11-09
 
 - ↔️ Match Native table-wide RTL alignment for mixed emoji, numeric, Arabic, and English cells.

@@ -90,6 +90,8 @@ def plan_projected_images(connection, thread_id, positions):
             event = record["payload"]
             if event.get("type") != "item_completed" or event.get("turn_id") != row["turn_id"]:
                 raise ValueError("Projected image source turn/event differs")
+            if event.get("thread_id") != thread_id or item.get("id") != row["item_id"]:
+                raise ValueError("Projected image source thread/item identity differs")
             if row["item_type"] != "userMessage":
                 raise ValueError("Unsupported projected image item type")
             cleaned = clean_projected_user_image(item, event["item"])

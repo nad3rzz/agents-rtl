@@ -38,7 +38,7 @@ python3 tools/codex_session_doctor.py repair-tool-search --session /path/to/sess
 
 Notes:
 
-- `clean --apply` refuses indexed rollouts. Tail-only cleanup is NOT safe when SQLite holds byte offsets. Projection-aware cleanup is not implemented.
+- `clean --apply` refuses indexed rollouts. Tail-only cleanup is NOT safe when SQLite holds byte offsets. The separate experimental trial below is not integrated into doctor.
 - For unindexed legacy files, `clean` removes image payloads only from unreferenced tails; shared prefixes and metadata remain unchanged.
 - `repair-tool-search` removes corrupt `tool_search_call` records with invalid long argument property names and their failed parser outputs.
 - `clean` is dry-run by default.
@@ -49,6 +49,29 @@ Notes:
 - Cleanup validates all history links before writing. Broken cutoffs must be repaired first; stopping clients alone does not repair them.
 - No-op cleanup does not rewrite JSON or create a backup. Linux writes require all Codex clients stopped; do not restart them during maintenance.
 - Legacy restore, migration, tool-search removal and record recovery refuse linked/paginated rollouts.
+
+### Experimental Indexed Image Cleanup
+
+Only for disposable, independent paginated test chats up to 16 MiB. Linked chats,
+partial indexes, unproved image shapes and image-only messages are rejected.
+This is NOT yet validated in the native UI and is not a general cleanup command.
+
+```bash
+# Copies only; never changes the original:
+python3 -B tools/codex_session_clean_probe.py --session /absolute/sessions/path/rollout-....jsonl
+# Close ALL Codex clients and keep them closed until completion/recovery:
+python3 -B tools/codex_session_clean_indexed_trial.py --session /absolute/sessions/path/rollout-....jsonl --apply
+# After interruption, use the recovery_journal path printed before writes:
+python3 -B tools/codex_session_clean_indexed_trial.py --recover /absolute/path/transaction.json --apply
+```
+
+The trial removes images from both the rollout and selected projected user items,
+updates offsets, preserves text/IDs/ordinals, and saves verified backups. File
+replacement and SQLite commit are NOT jointly atomic: a durable journal recovers
+known interruption boundaries, refusing unknown/newer state. Never reopen Codex
+mid-operation. Recovery never restores a whole older database over other chats.
+An unfinished journal blocks another trial; rerunning after success refuses the
+now image-free input without rewriting it. Keep backups until native UI verification.
 
 ### Repair History Offsets
 

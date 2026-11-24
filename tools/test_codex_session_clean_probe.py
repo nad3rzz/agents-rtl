@@ -144,6 +144,24 @@ def test_unknown_and_image_only_shapes_are_rejected():
         clean_projected_user_image(item, source)
 
 
+@pytest.mark.parametrize("identity", ["thread", "item"])
+def test_projected_image_identity_mismatch_is_rejected(tmp_path, identity):
+    source, database = make_probe_fixture(tmp_path / "source")
+    positions = probe.inspect_positions(source)
+    with closing(connect_history(database)) as reader:
+        if identity == "thread":
+            for position in positions.values():
+                record = position["record"]
+                if record is not None and record["type"] == "event_msg" and record["payload"]["type"] == "item_completed":
+                    record["payload"]["thread_id"] = "wrong-thread"
+        else:
+            with closing(connect_history(database, writable=True)) as writer:
+                writer.execute("UPDATE thread_items SET item_id='wrong-item' WHERE item_id='user-1'")
+                writer.commit()
+        with pytest.raises(ValueError, match="identity differs"):
+            plan_projected_images(reader, THREAD, positions)
+
+
 def test_failed_item_update_rolls_back_offset_update(tmp_path):
     source, database = make_probe_fixture(tmp_path / "source")
     with closing(connect_history(database, writable=True)) as writer:

@@ -290,7 +290,8 @@ func TestRTLScriptIncludesPersonalSessionDoctorControls(t *testing.T) {
 		"agents-rtl-codex-chat-doctor-button",
 		"agents-rtl-codex-chat-list-doctor-button",
 		"Copy session Doctor command",
-		"clean --session ",
+		"python3 -B ",
+		" --session ",
 		" --apply",
 		"personalSessionDoctorIsEnabled()",
 	}
@@ -301,5 +302,8 @@ func TestRTLScriptIncludesPersonalSessionDoctorControls(t *testing.T) {
 	}
 	if strings.Contains(assembledScript, "allow-open-session") {
 		t.Fatal("assembled RTL script must not permit open-session Doctor writes")
+	}
+	if strings.Contains(assembledScript, "clean --session ") {
+		t.Fatal("assembled RTL script must not generate the legacy Doctor cleanup command")
 	}
 }

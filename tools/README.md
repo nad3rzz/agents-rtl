@@ -73,6 +73,40 @@ mid-operation. Recovery never restores a whole older database over other chats.
 An unfinished journal blocks another trial; rerunning after success refuses the
 now image-free input without rewriting it. Keep backups until native UI verification.
 
+### Structured Image Cleanup
+
+```bash
+# Close every Codex client first. Includes active AND archived histories.
+python3 -B tools/codex_session_clean.py --all-home ~/.codex --apply
+# One conversation and all its ancestors:
+python3 -B tools/codex_session_clean.py --session /absolute/sessions/path/rollout-....jsonl --apply
+# After interruption, run the recovery command printed before publication:
+python3 -B tools/codex_session_clean.py --recover /absolute/path/bulk-transaction.json --apply
+```
+
+The personal-gated Doctor button copies the `--session` command; it never runs it.
+The old `codex_session_clean_all.py` entry point remains a compatibility wrapper.
+Session scope cleans the selected rollout and its ancestors, not unrelated bodies
+or indexed items. Shared ancestor images disappear for every dependent chat;
+affected dependent headers are updated even outside the cleanup scope. Validation
+and recovery still cover the whole home. The plan lists the exact cleanup paths.
+
+Streams rollouts without the trial's 16 MiB limit, updates shared-history
+cutoffs and SQLite offsets, and removes structured images from projected items.
+Message records and ordinals remain; image-only messages retain empty content,
+with no replacement text. Ordinary text/code containing image data, attachment
+files and backups are not removed. Unknown schemas, broken existing offsets,
+unfinished realtime image items and insufficient backup space abort explicitly.
+
+All affected files are staged and backed up before publication. A durable journal
+coordinates atomic file replacements with one SQLite transaction; these are NOT
+a jointly atomic operation. Keep clients closed until success/recovery. Recovery
+refuses newer/unknown data and never restores a full older DB over new work.
+Unfinished image-clean journals block other local maintenance commands.
+Whole-home cleanup completed in a user-run operation; native UI verification is
+still separate. The new session-scoped path has only static checks, not runtime
+validation. The small isolated trial is not proof for either path.
+
 ### Repair History Offsets
 
 Old cleaners changed byte offsets without updating `history_base`. This tool proves

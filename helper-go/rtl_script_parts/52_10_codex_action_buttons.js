@@ -46,8 +46,8 @@
     if (typeof conversation?.path !== "string" || !conversation.path.startsWith("/")) {
       throw new Error("Codex conversation path is missing or invalid.");
     }
-    return "python3 " + quotePosixShellArgument(scriptPath) +
-      " clean --session " + quotePosixShellArgument(conversation.path) +
+    return "python3 -B " + quotePosixShellArgument(scriptPath) +
+      " --session " + quotePosixShellArgument(conversation.path) +
       " --apply";
   };
   const createCodexConversationPathButton = (conversation) => {

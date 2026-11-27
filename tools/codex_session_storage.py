@@ -12,6 +12,10 @@ from pathlib import Path
 
 COPY_CHUNK_BYTES = 1024 * 1024
 UNRELATED_SPECIAL_FILESYSTEM_TYPES = {"overlay", "nsfs", "hugetlbfs", "mqueue"}
+IMAGE_CLEANUP_JOURNAL_PATTERNS = (
+    "image-clean-transaction-*/transaction.json",
+    "bulk-image-clean-*/bulk-transaction.json",
+)
 
 
 def file_signature(path):
@@ -74,19 +78,39 @@ def require_closed(path):
         raise RuntimeError(f"File is open or its check failed: {path}\n{result.stdout}{result.stderr}")
 
 
+def require_no_unfinished_image_cleanup(roots):
+    homes = set(map(Path, roots))
+    homes.update(root.parent for root in list(homes) if root.name in ("sessions", "archived_sessions"))
+    for home in sorted(homes):
+        directory = home / "session_maintenance_backups"
+        if directory.is_symlink():
+            raise ValueError(f"Symlink maintenance directory: {directory}")
+        for pattern in IMAGE_CLEANUP_JOURNAL_PATTERNS:
+            for journal_path in sorted(directory.glob(pattern)):
+                file_signature(journal_path)
+                journal = json.loads(journal_path.read_text())
+                if journal["version"] != 1 or journal["status"] not in ("prepared", "applied", "rolled_back"):
+                    raise ValueError(f"Unknown image-clean transaction state: {journal_path}")
+                if journal["status"] == "prepared":
+                    raise RuntimeError(f"Recover unfinished image cleanup before other maintenance: {journal_path}")
+
+
 @contextmanager
-def offline_session_lock(roots):
+def offline_session_lock(roots, *, allow_pending_image_cleanup=False):
     if os.name != "posix":
         raise RuntimeError("Session maintenance writes require Linux offline guards")
     import fcntl
 
     descriptors = []
     try:
-        for root in sorted(set(map(Path, roots))):
+        roots = sorted(set(map(Path, roots)))
+        for root in roots:
             descriptor = os.open(root, os.O_RDONLY | os.O_DIRECTORY)
             descriptors.append(descriptor)
             fcntl.flock(descriptor, fcntl.LOCK_EX | fcntl.LOCK_NB)
         require_codex_stopped()
+        if not allow_pending_image_cleanup:
+            require_no_unfinished_image_cleanup(roots)
         yield
     finally:
         for descriptor in reversed(descriptors):

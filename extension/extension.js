@@ -27,7 +27,7 @@ const RUNTIME_ARGUMENTS_SETUP_NOTIFICATION_KEY = "runtimeArgumentsSetupNotificat
 const CLOSE_EDITOR_ACTION = "Close editor";
 const OPENAI_CHATGPT_EXTENSION_ID = "openai.chatgpt";
 const AGENTS_RTL_PERSONAL_EXTENSION_ID = "nad3r.agents-rtl-personal";
-const BUNDLED_SESSION_DOCTOR_RELATIVE_PATH = path.join("tools", "codex_session_doctor.py");
+const BUNDLED_SESSION_DOCTOR_RELATIVE_PATH = path.join("tools", "codex_session_clean.py");
 const PRODUCT_PROFILES = [
   {
     productName: "Antigravity",

@@ -30,6 +30,12 @@ stage_and_package() {
   cp "$ROOT_DIR/tools/codex_session_projection.py" "$STAGING_DIR/tools/codex_session_projection.py"
   cp "$ROOT_DIR/tools/codex_session_history_repair.py" "$STAGING_DIR/tools/codex_session_history_repair.py"
   cp "$ROOT_DIR/tools/codex_session_repair_projection.py" "$STAGING_DIR/tools/codex_session_repair_projection.py"
+  cp "$ROOT_DIR/tools/codex_session_clean.py" "$STAGING_DIR/tools/codex_session_clean.py"
+  cp "$ROOT_DIR/tools/codex_session_clean_all.py" "$STAGING_DIR/tools/codex_session_clean_all.py"
+  cp "$ROOT_DIR/tools/codex_session_bulk_images.py" "$STAGING_DIR/tools/codex_session_bulk_images.py"
+  cp "$ROOT_DIR/tools/codex_session_bulk_transaction.py" "$STAGING_DIR/tools/codex_session_bulk_transaction.py"
+  cp "$ROOT_DIR/tools/codex_session_image_projection.py" "$STAGING_DIR/tools/codex_session_image_projection.py"
+  cp "$ROOT_DIR/tools/codex_session_image_transaction.py" "$STAGING_DIR/tools/codex_session_image_transaction.py"
 
   cd "$STAGING_DIR"
   npx --yes @vscode/vsce package \

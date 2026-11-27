@@ -153,7 +153,7 @@ def main():
     else:
         path = arguments.recover.absolute()
         session = Path(load_journal(path)["session"])
-        with offline_session_lock([session_root(session).parent, session_root(session)]):
+        with offline_session_lock([session_root(session).parent, session_root(session)], allow_pending_image_cleanup=True):
             print("recovery_result:", recover_transaction_locked(path))
 
 
